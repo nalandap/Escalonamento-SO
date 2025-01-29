@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-# Dados dos processos (simulando um banco de dados)
+
 processes = []
 
 @app.route('/')
@@ -40,7 +40,6 @@ def run_scheduler():
     return jsonify(result)
 
 def fifo_scheduler():
-    # Implementação do FIFO
     sorted_processes = sorted(processes, key=lambda x: x['arrival_time'])
     current_time = 0
     turnaround_times = []
@@ -58,7 +57,6 @@ def fifo_scheduler():
     return {'algorithm': 'FIFO', 'avg_turnaround': avg_turnaround}
 
 def sjf_scheduler():
-    # Implementação do SJF
     sorted_processes = sorted(processes, key=lambda x: (x['arrival_time'], x['execution_time']))
     current_time = 0
     turnaround_times = []
@@ -75,6 +73,37 @@ def sjf_scheduler():
     avg_turnaround = sum(turnaround_times) / len(turnaround_times)
     return {'algorithm': 'SJF', 'avg_turnaround': avg_turnaround}
 
+def round_robin_scheduler():
+    if not processes:
+        return {'algorithm': 'Round Robin', 'avg_turnaround': 0, 'message': 'Nenhum processo para escalonar.'}
+
+    quantum = processes[0]['quantum'] 
+    current_time = 0
+    turnaround_times = []
+    ready_queue = processes.copy() 
+    ready_queue.sort(key=lambda x: x['arrival_time']) 
+
+    while ready_queue:
+        process = ready_queue.pop(0)  
+
+        
+        if current_time < process['arrival_time']:
+            current_time = process['arrival_time']
+
+       
+        if process['remaining_time'] > quantum:
+            current_time += quantum
+            process['remaining_time'] -= quantum
+            ready_queue.append(process)  
+        else:
+            current_time += process['remaining_time']
+            process['remaining_time'] = 0
+            turnaround_time = current_time - process['arrival_time']
+            turnaround_times.append(turnaround_time)
+
+    
+    avg_turnaround = sum(turnaround_times) / len(turnaround_times)
+    return {'algorithm': 'Round Robin', 'avg_turnaround': avg_turnaround}
 # Implementações para Round Robin e EDF podem ser adicionadas aqui
 
 if __name__ == '__main__':
