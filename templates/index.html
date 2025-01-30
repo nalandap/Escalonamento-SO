@@ -73,17 +73,17 @@
         }
 
         async function runScheduler() {
-            const algorithm = document.getElementById('algorithm').value;
-            const response = await fetch('/run_scheduler', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ algorithm })
-            });
+    const algorithm = document.getElementById('algorithm').value;
+    const response = await fetch('/run_scheduler', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ algorithm })
+    });
 
-            const result = await response.json();
-            document.getElementById('result').textContent = 
-                `Algoritmo: ${result.algorithm}, Turnaround Médio: ${result.avg_turnaround}`;
-        }
+    const result = await response.json();
+    document.getElementById('result').textContent = 
+        `Algoritmo: ${result.algorithm}, Turnaround Médio: ${result.avg_turnaround}`;
+}
     </script>
 </body>
 </html>
