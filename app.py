@@ -40,19 +40,33 @@ def run_scheduler():
     return jsonify(result)
 
 def fifo_scheduler():
+    if not processes:
+        return {'algorithm': 'FIFO', 'avg_turnaround': 0, 'message': 'Nenhum processo para escalonar.'}
+
+    # Ordena os processos por tempo de chegada
     sorted_processes = sorted(processes, key=lambda x: x['arrival_time'])
+
     current_time = 0
     turnaround_times = []
 
     for process in sorted_processes:
         if current_time < process['arrival_time']:
             current_time = process['arrival_time']
+
+    
         start_time = current_time
+
+        
         current_time += process['execution_time']
+
+        
         end_time = current_time
+
+       
         turnaround_time = end_time - process['arrival_time']
         turnaround_times.append(turnaround_time)
 
+    # Calcula o turnaround médio
     avg_turnaround = sum(turnaround_times) / len(turnaround_times)
     return {'algorithm': 'FIFO', 'avg_turnaround': avg_turnaround}
 

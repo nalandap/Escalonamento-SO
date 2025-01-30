@@ -61,7 +61,7 @@ O sistema também implementa algoritmos de substituição de páginas para geren
 
 2. Instale as dependências:
    ```bash
-  pip install -r requirements.txt
+   pip install -r requirements.txt
 
 ### Executando o Sistema
 
