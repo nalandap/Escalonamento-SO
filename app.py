@@ -102,62 +102,58 @@ def round_robin_scheduler():
     if not processes:
         return {'algorithm': 'Round Robin', 'avg_turnaround': 0, 'message': 'Nenhum processo para escalonar.'}
 
-    # Reinicializa o remaining_time e waiting_time para todos os processos
     for process in processes:
         process['remaining_time'] = process['execution_time']
-        process['waiting_time'] = 0  # Inicializa o tempo de espera de cada processo
+        process['waiting_time'] = 0  
 
     current_time = 0
     turnaround_times = []
     ready_queue = []
-    remaining_processes = sorted(processes, key=lambda x: x['arrival_time'])  # Ordena por arrival_time
+    remaining_processes = sorted(processes, key=lambda x: x['arrival_time'])  
 
     while remaining_processes or ready_queue:
-        # Adiciona processos que chegaram ao current_time na ready_queue
         while remaining_processes and remaining_processes[0]['arrival_time'] <= current_time:
             process = remaining_processes.pop(0)
             ready_queue.append(process)
             print(f"Processo {process['pid']} adicionado à fila de prontos no tempo {current_time}")
 
         if ready_queue:
-            # Ordena a ready_queue pelo tempo de espera (maior tempo de espera primeiro)
-            ready_queue.sort(key=lambda x: -x['waiting_time'])  # Ordem decrescente de waiting_time
-            process = ready_queue.pop(0)  # Pega o processo com maior tempo de espera
+            ready_queue.sort(key=lambda x: -x['waiting_time'])  
+            process = ready_queue.pop(0)  
 
-            # Executa o processo em passos de 1 unidade de tempo
+            
             execution_time = min(quantum, process['remaining_time'])
             for _ in range(execution_time):
                 current_time += 1
                 process['remaining_time'] -= 1
 
-                # Verifica se novos processos chegaram durante a execução
+                
                 while remaining_processes and remaining_processes[0]['arrival_time'] <= current_time:
                     new_process = remaining_processes.pop(0)
                     ready_queue.append(new_process)
                     print(f"Processo {new_process['pid']} adicionado à fila de prontos no tempo {current_time}")
 
-                # Atualiza o tempo de espera dos outros processos na ready_queue
+               
                 for p in ready_queue:
                     p['waiting_time'] += 1
 
             print(f"Processo {process['pid']} executado por {execution_time} unidades de tempo. Tempo atual: {current_time}")
-
-            # Se o processo ainda tem tempo restante, coloca de volta na fila de prontos
+ 
             if process['remaining_time'] > 0:
                 ready_queue.append(process)
                 print(f"Processo {process['pid']} volta para a fila de prontos. Tempo restante: {process['remaining_time']}")
             else:
-                # Processo concluído: calcula o turnaround
+                
                 turnaround_time = current_time - process['arrival_time']
                 turnaround_times.append(turnaround_time)
                 print(f"Processo {process['pid']} concluído. Tempo de término: {current_time}, Turnaround: {turnaround_time}")
         else:
-            # Se não há processos prontos, avança o tempo para o próximo processo
+           
             if remaining_processes:
                 current_time = remaining_processes[0]['arrival_time']
                 print(f"Nenhum processo na fila de prontos. Avançando o tempo para {current_time}")
 
-    # Calcula o turnaround médio
+    
     avg_turnaround = sum(turnaround_times) / len(turnaround_times) if turnaround_times else 0
     return {'algorithm': 'Round Robin', 'avg_turnaround': avg_turnaround}
 
