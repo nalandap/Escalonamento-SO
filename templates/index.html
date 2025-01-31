@@ -9,31 +9,31 @@
 <body>
     <div class="container">
         <h1>Sistema de Escalonamento de Processos</h1>
-    
+
         <h2>Configuração do Sistema</h2>
-            <form id="config-form">
-                <label for="quantum">Quantum:</label>
-                <input type="number" id="quantum" required value="{{ quantum if quantum else '' }}"><br>
+        <form id="config-form">
+            <label for="quantum">Quantum:</label>
+            <input type="number" id="quantum" required value="{{ quantum if quantum else '' }}"><br>
 
-                <label for="overhead">Sobrecarga:</label>
-                <input type="number" id="overhead" required value="{{ overhead if overhead else '' }}"><br>
+            <label for="overhead">Sobrecarga:</label>
+            <input type="number" id="overhead" required value="{{ overhead if overhead else '' }}"><br>
 
-                <button type="submit">Salvar Configuração</button>
-            </form>
+            <button type="submit">Salvar Configuração</button>
+        </form>
 
         <h2>Adicionar Processo</h2>
-            <form id="process-form">
-                <label for="arrival_time">Tempo de Chegada:</label>
-                <input type="number" id="arrival_time" name="arrival_time" required>
-                
-                <label for="execution_time">Tempo de Execução:</label>
-                <input type="number" id="execution_time" name="execution_time" required>
-                
-                <label for="deadline">Deadline:</label>
-                <input type="number" id="deadline" name="deadline" required>
-                
-                <button type="submit">Adicionar</button>
-            </form>
+        <form id="process-form">
+            <label for="arrival_time">Tempo de Chegada:</label>
+            <input type="number" id="arrival_time" name="arrival_time" required>
+            
+            <label for="execution_time">Tempo de Execução:</label>
+            <input type="number" id="execution_time" name="execution_time" required>
+            
+            <label for="deadline">Deadline:</label>
+            <input type="number" id="deadline" name="deadline" required>
+            
+            <button type="submit">Adicionar</button>
+        </form>
 
         <h2>Processos Adicionados</h2>
         <ul id="process-list">
@@ -52,14 +52,15 @@
                 <option value="EDF">EDF</option>
             </select><br>
 
-        <button type="submit">Executar</button>
+            <button type="submit">Executar</button>
+        </form>
 
         <h2>Resultado</h2>
         <p id="result"></p>
     </div>
 
     <script>
-
+        // Configuração do sistema
         document.getElementById("config-form").addEventListener("submit", function(event) {
             event.preventDefault();
 
@@ -81,7 +82,8 @@
             .catch(error => console.error("Erro:", error));
         });
 
-        const form = document.getElementById('process-form').addEventListener("submit", function(event) {
+        // Adicionar processo
+        document.getElementById("process-form").addEventListener("submit", async function(event) {
             event.preventDefault();
 
             const data = {
@@ -90,45 +92,27 @@
                 deadline: document.getElementById("deadline").value
             };
 
-            const response = fetch('/add_process', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
+            try {
+                const response = await fetch('/add_process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
 
-            const result = await response.json();
-            alert(result.message);
+                const result = await response.json();
+                alert(result.message);
 
-            // Atualiza a lista de processos
-            const processList = document.getElementById('process-list');
-            const li = document.createElement('li');
-            li.textContent = `Processo: Chegada=${data.arrival_time}, Execução=${data.execution_time}, Deadline=${data.deadline}`;
-            processList.appendChild(li);
-        }
-
-        async function runScheduler() {
-    const algorithm = document.getElementById('algorithm').value;
-    const response = await fetch('/run_scheduler', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ algorithm })
-    });
-
-    const result = await response.json();
-    document.getElementById('result').textContent = 
-        `Algoritmo: ${result.algorithm}, Turnaround Médio: ${result.avg_turnaround}`;
-}
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                console.log("Processo adicionado:", data);
-                location.reload();
-            })
-            .catch(error => console.error("Erro:", error));
-
+                // Atualiza a lista de processos
+                const processList = document.getElementById('process-list');
+                const li = document.createElement('li');
+                li.textContent = `Processo: Chegada=${data.arrival_time}, Execução=${data.execution_time}, Deadline=${data.deadline}`;
+                processList.appendChild(li);
+            } catch (error) {
+                console.error("Erro:", error);
+            }
         });
 
+        // Executar escalonador
         document.getElementById("scheduler-form").addEventListener("submit", function(event) {
             event.preventDefault();
 
