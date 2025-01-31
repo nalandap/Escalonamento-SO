@@ -9,54 +9,88 @@
 <body>
     <div class="container">
         <h1>Sistema de Escalonamento de Processos</h1>
-        
-        <form id="process-form">
-            <label for="arrival_time">Tempo de Chegada:</label>
-            <input type="number" id="arrival_time" name="arrival_time" required>
-            
-            <label for="execution_time">Tempo de Execução:</label>
-            <input type="number" id="execution_time" name="execution_time" required>
-            
-            <label for="deadline">Deadline:</label>
-            <input type="number" id="deadline" name="deadline" required>
-            
-            <label for="quantum">Quantum:</label>
-            <input type="number" id="quantum" name="quantum" required>
-            
-            <label for="overhead">Sobrecarga:</label>
-            <input type="number" id="overhead" name="overhead" required>
-            
-            <button type="button" onclick="addProcess()">Adicionar Processo</button>
-        </form>
+    
+        <h2>Configuração do Sistema</h2>
+            <form id="config-form">
+                <label for="quantum">Quantum:</label>
+                <input type="number" id="quantum" required value="{{ quantum if quantum else '' }}"><br>
+
+                <label for="overhead">Sobrecarga:</label>
+                <input type="number" id="overhead" required value="{{ overhead if overhead else '' }}"><br>
+
+                <button type="submit">Salvar Configuração</button>
+            </form>
+
+        <h2>Adicionar Processo</h2>
+            <form id="process-form">
+                <label for="arrival_time">Tempo de Chegada:</label>
+                <input type="number" id="arrival_time" name="arrival_time" required>
+                
+                <label for="execution_time">Tempo de Execução:</label>
+                <input type="number" id="execution_time" name="execution_time" required>
+                
+                <label for="deadline">Deadline:</label>
+                <input type="number" id="deadline" name="deadline" required>
+                
+                <button type="submit">Adicionar</button>
+            </form>
 
         <h2>Processos Adicionados</h2>
-        <ul id="process-list"></ul>
+        <ul id="process-list">
+            {% for process in process_list %}
+                <li>N: {{ process.pid }}, Chegada: {{ process.arrival_time }}, Execução: {{ process.execution_time }}, Deadline: {{ process.deadline }}</li>
+            {% endfor %}
+        </ul>
 
-        <h2>Escalonar Processos</h2>
-        <select id="algorithm">
-            <option value="FIFO">FIFO</option>
-            <option value="SJF">SJF</option>
-            <option value="Round Robin">Round Robin</option>
-            <option value="EDF">EDF</option>
-        </select>
-        <button type="button" onclick="runScheduler()">Executar Escalonador</button>
+        <h2>Escolha do Escalonamento</h2>
+        <form id="scheduler-form">
+            <label for="algorithm">Algoritmo:</label>
+            <select id="algorithm">
+                <option value="FIFO">FIFO</option>
+                <option value="SJF">SJF</option>
+                <option value="Round Robin">Round Robin</option>
+                <option value="EDF">EDF</option>
+            </select><br>
+
+        <button type="submit">Executar</button>
 
         <h2>Resultado</h2>
         <p id="result"></p>
     </div>
 
     <script>
-        async function addProcess() {
-            const form = document.getElementById('process-form');
+
+        document.getElementById("config-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+
             const data = {
-                arrival_time: form.arrival_time.value,
-                execution_time: form.execution_time.value,
-                deadline: form.deadline.value,
-                quantum: form.quantum.value,
-                overhead: form.overhead.value
+                quantum: document.getElementById("quantum").value,
+                overhead: document.getElementById("overhead").value
             };
 
-            const response = await fetch('/add_process', {
+            fetch("/set_config", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                console.log("Configuração salva:", data);
+            })
+            .catch(error => console.error("Erro:", error));
+        });
+
+        const form = document.getElementById('process-form').addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const data = {
+                arrival_time: document.getElementById("arrival_time").value,
+                execution_time: document.getElementById("execution_time").value,
+                deadline: document.getElementById("deadline").value
+            };
+
+            const response = fetch('/add_process', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -84,6 +118,41 @@
     document.getElementById('result').textContent = 
         `Algoritmo: ${result.algorithm}, Turnaround Médio: ${result.avg_turnaround}`;
 }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                console.log("Processo adicionado:", data);
+                location.reload();
+            })
+            .catch(error => console.error("Erro:", error));
+
+        });
+
+        document.getElementById("scheduler-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const data = {
+                algorithm: document.getElementById("algorithm").value
+            };
+
+            fetch("/run_scheduler", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                let resultHTML = `<p><strong>Algoritmo:</strong> ${result.algorithm}</p>`;
+                if (result.avg_turnaround !== undefined) {
+                    resultHTML += `<p><strong>Turnaround Médio:</strong> ${result.avg_turnaround}</p>`;
+                } else {
+                    resultHTML += `<p><strong>Erro:</strong> ${result.message}</p>`;
+                }
+                document.getElementById("result").innerHTML = resultHTML;
+            })
+            .catch(error => console.error("Erro:", error));
+        });
     </script>
 </body>
 </html>

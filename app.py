@@ -4,9 +4,22 @@ app = Flask(__name__)
 
 processes = []
 
+#Variáveis globais para não requisitar sempre que adicionar um processo
+quantum = None
+overhead = None
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', quantum=quantum, overhead=overhead, process_list=processes)
+
+@app.route('/set_config', methods=['POST'])
+def set_config():
+    """ Define o Quantum e a Sobrecarga do sistema uma única vez """
+    global quantum, overhead
+    data = request.json
+    quantum = int(data.get('quantum', 1))  # Define um valor padrão caso esteja vazio
+    overhead = int(data.get('overhead', 0))
+    return jsonify({'message': 'Configurações salvas com sucesso!', 'quantum': quantum, 'overhead': overhead})
 
 @app.route('/add_process', methods=['POST'])
 def add_process():
@@ -15,6 +28,8 @@ def add_process():
         'pid': len(processes) + 1,
         'arrival_time': int(data['arrival_time']),
         'execution_time': int(data['execution_time']),
+        'deadline': int(data['deadline'])
+ 
         'deadline': int(data['deadline']),
         'quantum': int(data['quantum']),
         'overhead': int(data['overhead']),
@@ -34,9 +49,13 @@ def run_scheduler():
     elif algorithm == 'SJF':
         result = sjf_scheduler()
     elif algorithm == 'Round Robin':
+        if quantum is None:
+            return jsonify({'error': 'Quantum não definido'}), 400
         result = round_robin_scheduler()
     elif algorithm == 'EDF':
         result = edf_scheduler()
+    else:
+        return jsonify({'error': 'Algoritmo desconhecido'}), 400
 
     print("Resultado:", result)  
     return jsonify(result)
@@ -94,15 +113,13 @@ def sjf_scheduler():
     avg_turnaround = sum(turnaround_times) / len(turnaround_times)
     return {'algorithm': 'SJF', 'avg_turnaround': avg_turnaround}
 
+
+
 def round_robin_scheduler():
     if not processes:
         return {'algorithm': 'Round Robin', 'avg_turnaround': 0, 'message': 'Nenhum processo para escalonar.'}
 
-    # Reinicializa o remaining_time para todos os processos
-    for process in processes:
-        process['remaining_time'] = process['execution_time']
-
-    quantum = processes[0]['quantum']  # Assume que o quantum é o mesmo para todos os processos
+    quantum = processes[0]['quantum'] 
     current_time = 0
     turnaround_times = []
     ready_queue = []
