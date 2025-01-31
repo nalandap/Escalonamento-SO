@@ -1,0 +1,96 @@
+/* Estilos gerais */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 60%;
+    margin: 50px auto;
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+h1, h2 {
+    color: #333;
+    text-align: center;
+}
+
+/* Formulários */
+form label {
+    display: block;
+    margin: 10px 0 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+form input, form select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+form button {
+    padding: 10px 15px;
+    background: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+}
+
+form button:hover {
+    background: #218838;
+}
+
+/* Lista de processos */
+#process-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#process-list li {
+    background: #f8f9fa;
+    margin: 5px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #333;
+}
+
+/* Resultados */
+#result {
+    background: #e9ecef;
+    padding: 15px;
+    border-radius: 4px;
+    margin-top: 20px;
+    font-size: 16px;
+    color: #333;
+}
+
+/* Gráficos */
+.chart-container {
+    margin-top: 20px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Mensagens de erro */
+.error {
+    color: #dc3545;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+}
