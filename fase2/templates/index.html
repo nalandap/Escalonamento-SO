@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Substituição de Páginas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Substituição de Páginas</h1>
+
+        <h2>Adicionar Processo</h2>
+        <form id="process-form">
+            <label for="paginas">Número de Páginas:</label>
+            <input type="number" id="paginas" required>
+            <button type="submit">Adicionar</button>
+        </form>
+
+        <h2>Escolha do Algoritmo</h2>
+        <form id="substituicao-form">
+            <label for="algoritmo">Algoritmo:</label>
+            <select id="algoritmo">
+                <option value="FIFO">FIFO</option>
+                <option value="LRU">LRU</option>
+            </select>
+            <button type="submit">Executar</button>
+        </form>
+
+        <h2>Resultado</h2>
+        <p id="result"></p>
+    </div>
+
+    <script>
+        // Adicionar processo
+        document.getElementById("process-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const data = { paginas: document.getElementById("paginas").value };
+            fetch("/adicionar_processo", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error("Erro:", error));
+        });
+
+        // Executar substituição
+        document.getElementById("substituicao-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const data = { algoritmo: document.getElementById("algoritmo").value };
+            fetch("/executar_substituicao", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById("result").innerText = JSON.stringify(result, null, 2);
+            })
+            .catch(error => console.error("Erro:", error));
+        });
+    </script>
+</body>
+</html>
