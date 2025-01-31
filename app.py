@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 from escalonadores import fifo_scheduler, sjf_scheduler, round_robin_scheduler
+from substituicao import fifo_substituicao, lru_substituicao
+from memoria import RAM, Disco
 
 app = Flask(__name__)
 
@@ -7,6 +9,11 @@ processes = []
 quantum = None
 overhead = None
 
+# Dados globais para a Fase 2 (Substituição de Páginas)
+ram = RAM(capacidade=50)  
+disco = Disco()
+
+# Rotas da Fase 1
 @app.route('/')
 def index():
     return render_template('index.html', quantum=quantum, overhead=overhead, process_list=processes)
@@ -55,5 +62,31 @@ def run_scheduler():
 
 
 
+    # Rotas da Fase 2
+    @app.route('/fase2')
+    def fase2():
+        return render_template('index_fase2.html')
+
+    @app.route('/fase2/adicionar_pagina', methods=['POST'])
+    def adicionar_pagina():
+        data = request.json
+        nova_pagina = {
+            'id': len(ram.paginas) + len(disco.paginas) + 1,
+            'ultimo_acesso': data.get('ultimo_acesso', 0)
+        }
+        algoritmo = data.get('algoritmo', 'FIFO')
+
+        if algoritmo == 'FIFO':
+            resultado = fifo_substituicao(ram, disco, nova_pagina)
+        elif algoritmo == 'LRU':
+            resultado = lru_substituicao(ram, disco, nova_pagina)
+        else:
+            return jsonify({'error': 'Algoritmo desconhecido'}), 400
+
+        return jsonify({
+            'message': resultado,
+            'ram': str(ram),
+            'disco': str(disco)
+        })
 if __name__ == '__main__':
     app.run(debug=True)
