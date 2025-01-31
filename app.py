@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+from escalonadores import fifo_scheduler, sjf_scheduler, round_robin_scheduler
 
 app = Flask(__name__)
 
