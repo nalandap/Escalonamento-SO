@@ -2,10 +2,7 @@ from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-
 processes = []
-
-#Variáveis globais para não requisitar sempre que adicionar um processo
 quantum = None
 overhead = None
 
@@ -29,8 +26,8 @@ def add_process():
         'pid': len(processes) + 1,
         'arrival_time': int(data['arrival_time']),
         'execution_time': int(data['execution_time']),
-        'deadline': int(data['deadline'])
- 
+        'deadline': int(data['deadline']),
+        'remaining_time': int(data['execution_time']) 
     }
     processes.append(process)
     return jsonify({'message': 'Processo adicionado com sucesso!'})
@@ -59,7 +56,6 @@ def fifo_scheduler():
     if not processes:
         return {'algorithm': 'FIFO', 'avg_turnaround': 0, 'message': 'Nenhum processo para escalonar.'}
 
-    # Ordena os processos por tempo de chegada
     sorted_processes = sorted(processes, key=lambda x: x['arrival_time'])
 
     current_time = 0
@@ -69,157 +65,8 @@ def fifo_scheduler():
         if current_time < process['arrival_time']:
             current_time = process['arrival_time']
 
-    
-        start_time = current_time
-
-        
         current_time += process['execution_time']
-
-        
-        end_time = current_time
-
-       
-        turnaround_time = end_time - process['arrival_time']
-        turnaround_times.append(turnaround_time)
-
-    # Calcula o turnaround médio
-    avg_turnaround = sum(turnaround_times) / len(turnaround_times)
-    return {'algorithm': 'FIFO', 'avg_turnaround': avg_turnaround}
-
-def sjf_scheduler():
-    if not processes:
-        return {'algorithm': 'SJF', 'avg_turnaround': 0, 'message': 'Nenhum processo para escalonar.'}
-
-    # Ordena os processos por tempo de chegada e tempo de execução
-    sorted_processes = sorted(processes, key=lambda x: (x['arrival_time'], x['execution_time']))
-
-    current_time = 0
-    turnaround_times = []
-    ready_queue = []
-
-    while sorted_processes or ready_queue:
-        # Adiciona processos que já chegaram à fila de prontos
-        while sorted_processes and sorted_processes[0]['arrival_time'] <= current_time:
-            ready_queue.append(sorted_processes.pop(0))
-
-        if ready_queue:
-            # Escolhe o processo com o menor tempo de execução
-            ready_queue.sort(key=lambda x: x['execution_time'])
-            process = ready_queue.pop(0)
-
-            # Executa o processo
-            start_time = current_time
-            current_time += process['execution_time']
-            end_time = current_time
-
-            # Calcula o turnaround
-            turnaround_time = end_time - process['arrival_time']
-            turnaround_times.append(turnaround_time)
-        else:
-            # Avança o tempo para o próximo processo
-            current_time = sorted_processes[0]['arrival_time']
-
-    # Calcula o turnaround médio
-    avg_turnaround = sum(turnaround_times) / len(turnaround_times)
-    return {'algorithm': 'SJF', 'avg_turnaround': avg_turnaround}
-
-
-def round_robin_scheduler():
-    if not processes:
-        return {'algorithm': 'Round Robin', 'avg_turnaround': 0, 'message': 'Nenhum processo para escalonar.'}
-
-    current_time = 0
-    turnaround_times = []
-    ready_queue = processes.copy() 
-    ready_queue.sort(key=lambda x: x['arrival_time']) 
-
-    while ready_queue:
-        process = ready_queue.pop(0)  
-
-        
-        if current_time < process['arrival_time']:
-            current_time = process['arrival_time']
-
-       
-        if process['remaining_time'] > quantum:
-            current_time += quantum
-            process['remaining_time'] -= quantum
-            ready_queue.append(process)  
-        else:
-            current_time += process['remaining_time']
-            process['remaining_time'] = 0
-            turnaround_time = current_time - process['arrival_time']
-            turnaround_times.append(turnaround_time)
-
-    
-    avg_turnaround = sum(turnaround_times) / len(turnaround_times)
-    return {'algorithm': 'Round Robin', 'avg_turnaround': avg_turnaround}
-# Implementações para Round Robin e EDF podem ser adicionadas aqui
-
-if __name__ == '__main__':
-    app.run(debug=True)
-from flask import Flask, render_template, request, jsonify
-
-app = Flask(__name__)
-
-processes = []
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/add_process', methods=['POST'])
-def add_process():
-    data = request.json
-    process = {
-        'pid': len(processes) + 1,
-        'arrival_time': int(data['arrival_time']),
-        'execution_time': int(data['execution_time']),
-        'deadline': int(data['deadline']),
-        'quantum': int(data['quantum']),
-        'overhead': int(data['overhead']),
-        'remaining_time': int(data['execution_time'])  # Inicializa o remaining_time
-    }
-    processes.append(process)
-    return jsonify({'message': 'Processo adicionado com sucesso!'})
-
-@app.route('/run_scheduler', methods=['POST'])
-def run_scheduler():
-    print("Requisição recebida no servidor!") 
-    algorithm = request.json['algorithm']
-    result = {}
-
-    if algorithm == 'FIFO':
-        result = fifo_scheduler()
-    elif algorithm == 'SJF':
-        result = sjf_scheduler()
-    elif algorithm == 'Round Robin':
-        result = round_robin_scheduler()
-    elif algorithm == 'EDF':
-        result = edf_scheduler()
-
-    print("Resultado:", result)  
-    return jsonify(result)
-
-def fifo_scheduler():
-    if not processes:
-        return {'algorithm': 'FIFO', 'avg_turnaround': 0, 'message': 'Nenhum processo para escalonar.'}
-
-    sorted_processes = sorted(processes, key=lambda x: x['arrival_time'])
-
-    current_time = 0
-    turnaround_times = []
-
-    for process in sorted_processes:
-        if current_time < process['arrival_time']:
-            current_time = process['arrival_time']
-
-        start_time = current_time
-        current_time += process['execution_time']
-        end_time = current_time
-
-        turnaround_time = end_time - process['arrival_time']
-        turnaround_times.append(turnaround_time)
+        turnaround_times.append(current_time - process['arrival_time'])
 
     avg_turnaround = sum(turnaround_times) / len(turnaround_times)
     return {'algorithm': 'FIFO', 'avg_turnaround': avg_turnaround}
@@ -241,28 +88,25 @@ def sjf_scheduler():
         if ready_queue:
             ready_queue.sort(key=lambda x: x['execution_time'])
             process = ready_queue.pop(0)
-
-            start_time = current_time
             current_time += process['execution_time']
-            end_time = current_time
-
-            turnaround_time = end_time - process['arrival_time']
-            turnaround_times.append(turnaround_time)
+            turnaround_times.append(current_time - process['arrival_time'])
         else:
-            current_time = sorted_processes[0]['arrival_time']
+            if sorted_processes:
+                current_time = sorted_processes[0]['arrival_time']
 
     avg_turnaround = sum(turnaround_times) / len(turnaround_times)
     return {'algorithm': 'SJF', 'avg_turnaround': avg_turnaround}
 
 def round_robin_scheduler():
+    global quantum
     if not processes:
         return {'algorithm': 'Round Robin', 'avg_turnaround': 0, 'message': 'Nenhum processo para escalonar.'}
 
-    # Reinicializa o remaining_time para todos os processos
+    # Reinicializa o remaining_time e waiting_time para todos os processos
     for process in processes:
         process['remaining_time'] = process['execution_time']
+        process['waiting_time'] = 0  # Inicializa o tempo de espera de cada processo
 
-    quantum = processes[0]['quantum']  # Assume que o quantum é o mesmo para todos os processos
     current_time = 0
     turnaround_times = []
     ready_queue = []
@@ -271,30 +115,52 @@ def round_robin_scheduler():
     while remaining_processes or ready_queue:
         # Adiciona processos que chegaram ao current_time na ready_queue
         while remaining_processes and remaining_processes[0]['arrival_time'] <= current_time:
-            ready_queue.append(remaining_processes.pop(0))
+            process = remaining_processes.pop(0)
+            ready_queue.append(process)
+            print(f"Processo {process['pid']} adicionado à fila de prontos no tempo {current_time}")
 
         if ready_queue:
-            process = ready_queue.pop(0)  # Pega o primeiro processo da fila de prontos
+            # Ordena a ready_queue pelo tempo de espera (maior tempo de espera primeiro)
+            ready_queue.sort(key=lambda x: -x['waiting_time'])  # Ordem decrescente de waiting_time
+            process = ready_queue.pop(0)  # Pega o processo com maior tempo de espera
 
-            # Executa o processo pelo tempo do quantum ou pelo tempo restante, o que for menor
+            # Executa o processo em passos de 1 unidade de tempo
             execution_time = min(quantum, process['remaining_time'])
-            current_time += execution_time
-            process['remaining_time'] -= execution_time
+            for _ in range(execution_time):
+                current_time += 1
+                process['remaining_time'] -= 1
+
+                # Verifica se novos processos chegaram durante a execução
+                while remaining_processes and remaining_processes[0]['arrival_time'] <= current_time:
+                    new_process = remaining_processes.pop(0)
+                    ready_queue.append(new_process)
+                    print(f"Processo {new_process['pid']} adicionado à fila de prontos no tempo {current_time}")
+
+                # Atualiza o tempo de espera dos outros processos na ready_queue
+                for p in ready_queue:
+                    p['waiting_time'] += 1
+
+            print(f"Processo {process['pid']} executado por {execution_time} unidades de tempo. Tempo atual: {current_time}")
 
             # Se o processo ainda tem tempo restante, coloca de volta na fila de prontos
             if process['remaining_time'] > 0:
                 ready_queue.append(process)
+                print(f"Processo {process['pid']} volta para a fila de prontos. Tempo restante: {process['remaining_time']}")
             else:
                 # Processo concluído: calcula o turnaround
                 turnaround_time = current_time - process['arrival_time']
                 turnaround_times.append(turnaround_time)
+                print(f"Processo {process['pid']} concluído. Tempo de término: {current_time}, Turnaround: {turnaround_time}")
         else:
             # Se não há processos prontos, avança o tempo para o próximo processo
             if remaining_processes:
                 current_time = remaining_processes[0]['arrival_time']
+                print(f"Nenhum processo na fila de prontos. Avançando o tempo para {current_time}")
 
     # Calcula o turnaround médio
     avg_turnaround = sum(turnaround_times) / len(turnaround_times) if turnaround_times else 0
     return {'algorithm': 'Round Robin', 'avg_turnaround': avg_turnaround}
+
+
 if __name__ == '__main__':
     app.run(debug=True)
