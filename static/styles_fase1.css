@@ -13,14 +13,37 @@ body {
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.26);
 }
 
-h1, h2 {
+h1 {
     color: #000000;
     font-family: 'Courier New', Courier, monospace;
+    text-align: center;
+}
+
+h2 {
+    color: #000000;
+    font-family: 'Courier New', Courier, monospace;
+    text-align: center;
+    font-size: 17px;
+    width: 320px;
+    height: 15px;
+    padding: 12px;
+    border: 3px solid yellow;
+    background: yellow;
+    margin-bottom: -5px;
 }
 
 form label {
     display: block;
     margin: 10px 0 5px;
+    text-align: center;
+    font-size: 17px;
+    background: #000000;
+    width: 300px;
+    padding: 12px;
+    border: 5px double #a674ff;
+    border-radius: 15px;
+    color: #fffefe;
+    font-family: 'Courier New', Courier, monospace;
 }
 
 form input {
