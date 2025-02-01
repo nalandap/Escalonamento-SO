@@ -31,15 +31,17 @@ def set_config():
 @app.route('/add_process', methods=['POST'])
 def add_process():
     data = request.json
+    pid = len(processes) + 1  # Gera o número do processo
+
     process = {
-        'pid': len(processes) + 1,
+        'pid': pid,
         'arrival_time': int(data['arrival_time']),
         'execution_time': int(data['execution_time']),
         'deadline': int(data['deadline']),
         'remaining_time': int(data['execution_time']) 
     }
     processes.append(process)
-    return jsonify({'message': 'Processo adicionado com sucesso!'})
+    return jsonify({'message': 'Processo adicionado com sucesso!', 'pid': pid})
 
 @app.route('/run_scheduler', methods=['POST'])
 def run_scheduler():

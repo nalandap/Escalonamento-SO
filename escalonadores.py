@@ -87,7 +87,7 @@ def round_robin_scheduler(processes, quantum, overhead):
 
     while remaining_processes or ready_queue:
         for p in ready_queue:
-            if p['remaining_time'] > 0 and current_time not in executed[p['pid']]:
+            if p['remaining_time'] > 0 and current_time not in executed[p['pid']] and current_time not in overhead_time[p['pid']]:
                 waiting[p['pid']].append(current_time)  # Registra espera corretamente
 
         while remaining_processes and remaining_processes[0]['arrival_time'] <= current_time:
@@ -115,7 +115,8 @@ def round_robin_scheduler(processes, quantum, overhead):
 
                 for p in ready_queue:
                     p['waiting_time'] += 1
-                    waiting[p['pid']].append(current_time)  # Adiciona tempo de espera corretamente
+                    if current_time not in executed[p['pid']] and current_time not in overhead_time[p['pid']]:
+                        waiting[p['pid']].append(current_time)  # Garante tempo de espera corretamente
 
             print(f"Processo {process['pid']} executado por {execution_time} unidades de tempo. Tempo atual: {current_time}")
  
@@ -157,6 +158,10 @@ def edf_scheduler(processes, quantum, overhead):
         overhead_time[pid] = []
 
     while sorted_processes or ready_queue:
+        for p in ready_queue:
+            if p['remaining_time'] > 0 and current_time not in executed[p['pid']] and current_time not in overhead_time[p['pid']]:
+                waiting[p['pid']].append(current_time)  # Registra espera corretamente
+
         while sorted_processes and sorted_processes[0]['arrival_time'] <= current_time:
             ready_queue.append(sorted_processes.pop(0))
             ready_queue.sort(key=lambda x: x['deadline'])
@@ -165,12 +170,23 @@ def edf_scheduler(processes, quantum, overhead):
             process = ready_queue.pop(0)
             pid = process['pid']
             execution_time = min(process['execution_time'], quantum)
-            
+
             for _ in range(execution_time):
                 executed[pid].append(current_time)
+                if current_time in waiting[pid]:
+                    waiting[pid].remove(current_time)
                 current_time += 1
                 process['execution_time'] -= 1
-                
+
+                while sorted_processes and sorted_processes[0]['arrival_time'] <= current_time:
+                    new_process = sorted_processes.pop(0)
+                    ready_queue.append(new_process)
+                    ready_queue.sort(key=lambda x: x['deadline'])
+
+                for p in ready_queue:
+                    if current_time not in executed[p['pid']] and current_time not in overhead_time[p['pid']]:
+                        waiting[p['pid']].append(current_time)  # Garante tempo de espera corretamente
+
             if process['execution_time'] > 0:
                 for _ in range(overhead):
                     overhead_time[pid].append(current_time)

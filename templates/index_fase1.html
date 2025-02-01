@@ -93,33 +93,36 @@
 
         // Adicionar processo
         document.getElementById("process-form").addEventListener("submit", async function(event) {
-            event.preventDefault();
+    event.preventDefault();
 
-            const data = {
-                arrival_time: document.getElementById("arrival_time").value,
-                execution_time: document.getElementById("execution_time").value,
-                deadline: document.getElementById("deadline").value
-            };
+    const data = {
+        arrival_time: document.getElementById("arrival_time").value,
+        execution_time: document.getElementById("execution_time").value,
+        deadline: document.getElementById("deadline").value
+    };
 
-            try {
-                const response = await fetch('/add_process', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-                alert(result.message);
-
-                // Atualiza a lista de processos
-                const processList = document.getElementById('process-list');
-                const li = document.createElement('li');
-                li.textContent = `Processo: Chegada=${data.arrival_time}, Execução=${data.execution_time}, Deadline=${data.deadline}`;
-                processList.appendChild(li);
-            } catch (error) {
-                console.error("Erro:", error);
-            }
+    try {
+        const response = await fetch('/add_process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
         });
+
+        const result = await response.json();
+        alert(result.message);
+
+        // Obter o PID gerado pelo backend
+        const pid = result.pid;  
+
+        // Atualiza a lista de processos
+        const processList = document.getElementById('process-list');
+        const li = document.createElement('li');
+        li.textContent = `Processo: ${pid}, Chegada=${data.arrival_time}, Execução=${data.execution_time}, Deadline=${data.deadline}`;
+        processList.appendChild(li);
+    } catch (error) {
+        console.error("Erro:", error);
+    }
+});
 
         // Executar escalonador
         document.getElementById("scheduler-form").addEventListener("submit", function(event) {
@@ -156,7 +159,9 @@
 
                         for (let t = 0; t < result.total_time; t++) {
                             let td = document.createElement("td");
-
+                            
+                            //Ajuste de Coloração
+                            
                             if (result.executed[processId].includes(t)) {
                                 td.classList.add("executing");
                             } else if (result.waiting[processId] && result.waiting[processId].includes(t)) {
@@ -164,8 +169,27 @@
                             } else if (result.overhead[processId] && result.overhead[processId].includes(t)) {
                                 td.classList.add("overhead");
                             } else {
-                                td.classList.add("not-in-queue");
+                                // Verifica se está entre dois períodos de WAITING
+                                let betweenWaiting = result.waiting[processId] && result.waiting[processId].some(time => time < t) &&
+                                                    result.waiting[processId].some(time => time > t);
+
+                                // Verifica se está entre OVERHEAD e WAITING
+                                let betweenOverheadAndWaiting = result.overhead[processId] && result.overhead[processId].some(time => time < t) &&
+                                                                result.waiting[processId] && result.waiting[processId].some(time => time > t);
+
+                                // Verifica se está entre WAITING e EXECUTING
+                                let betweenWaitingAndExecuting = result.waiting[processId] && result.waiting[processId].some(time => time < t) &&
+                                                                result.executed[processId] && result.executed[processId].some(time => time > t);
+
+                                if (betweenWaiting || betweenOverheadAndWaiting || betweenWaitingAndExecuting) {
+                                    td.classList.add("waiting");  // Pinta de amarelo se estiver entre os estados esperados
+                                } else {
+                                    td.classList.add("not-in-queue");
+                                }
                             }
+
+
+
 
                             tr.appendChild(td);
                         }
