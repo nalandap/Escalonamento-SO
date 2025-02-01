@@ -16,7 +16,7 @@ overhead = None
 # Rotas da Fase 1
 @app.route('/')
 def index():
-    return render_template('index.html', quantum=quantum, overhead=overhead, process_list=processes)
+    return render_template('index_fase1.html', quantum=quantum, overhead=overhead, process_list=processes)
 
 @app.route('/set_config', methods=['POST'])
 def set_config():
