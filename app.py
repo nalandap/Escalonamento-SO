@@ -59,8 +59,28 @@ def run_scheduler():
     else:
         return jsonify({'error': 'Algoritmo desconhecido'}), 400
 
+    result["gantt_chart"] = generate_gantt_chart(result, processes)
     return jsonify(result)
 
+# Exportação Gráfico de Gantt
+
+def generate_gantt_chart(result, processes):
+    timeline = []
+    for process in processes:
+        gantt_row = {"process": f"P{process['pid']}", "states": []}
+        for time in range(result['total_time']):
+            if time < process['arrival_time']:
+                gantt_row["states"].append("Cinza")
+            elif time in result['executed'][process['pid']]:
+                gantt_row["states"].append("Lilás")
+            elif time in result['waiting'][process['pid']]:
+                gantt_row["states"].append("Amarelo")
+            elif time in result['overhead'][process['pid']]:
+                gantt_row["states"].append("Rosa")
+            else:
+                gantt_row["states"].append("Cinza")
+        timeline.append(gantt_row)
+    return timeline
 
 
     # Rotas da Fase 2

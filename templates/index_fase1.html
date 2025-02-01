@@ -57,7 +57,16 @@
 
         <h2>Resultado</h2>
         <p id="result"></p>
+
+        <h2>Gráfico de Gantt</h2>
+            <table id="gantt-table">
+                <thead>
+                    <tr id="time-row"><th>Tempo</th></tr>
+                </thead>
+                <tbody id="gantt-body"></tbody>
+            </table>
     </div>
+
 
     <script>
         // Configuração do sistema
@@ -117,8 +126,9 @@
             event.preventDefault();
 
             const data = {
-                algorithm: document.getElementById("algorithm").value
-            };
+                algorithm: document.getElementById("algorithm").value};
+            document.getElementById("result").innerHTML = "";
+            document.getElementById("gantt-body").innerHTML = "";
 
             // Limpa o resultado anterior
             document.getElementById("result").innerHTML = "";
@@ -130,14 +140,39 @@
             })
             .then(response => response.json())
             .then(result => {
-                let resultHTML = `<p><strong>Algoritmo:</strong> ${result.algorithm}</p>`;
+                document.getElementById("result").innerHTML = `<p><strong>Algoritmo:</strong> ${result.algorithm}</p>`;
                 if (result.avg_turnaround !== undefined) {
-                    resultHTML += `<p><strong>Turnaround Médio:</strong> ${result.avg_turnaround}</p>`;
-                } else {
-                    resultHTML += `<p><strong>Erro:</strong> ${result.message}</p>`;
+                    document.getElementById("result").innerHTML += `<p><strong>Turnaround Médio:</strong> ${result.avg_turnaround}</p>`;
                 }
-                document.getElementById("result").innerHTML = resultHTML;
-                alert(result.message || "Escalonamento concluído!");
+                
+                if (result.executed) {
+                    let ganttBody = document.getElementById("gantt-body");
+
+                    for (let processId in result.executed) {
+                        let tr = document.createElement("tr");
+                        let th = document.createElement("th");
+                        th.innerText = `P${processId}`;
+                        tr.appendChild(th);
+
+                        for (let t = 0; t < result.total_time; t++) {
+                            let td = document.createElement("td");
+
+                            if (result.executed[processId].includes(t)) {
+                                td.classList.add("executing");
+                            } else if (result.waiting[processId] && result.waiting[processId].includes(t)) {
+                                td.classList.add("waiting");
+                            } else if (result.overhead[processId] && result.overhead[processId].includes(t)) {
+                                td.classList.add("overhead");
+                            } else {
+                                td.classList.add("not-in-queue");
+                            }
+
+                            tr.appendChild(td);
+                        }
+
+                        ganttBody.appendChild(tr);
+                    }
+                }
             })
             .catch(error => console.error("Erro:", error));
         });

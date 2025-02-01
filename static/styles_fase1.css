@@ -57,3 +57,31 @@ button:hover {
     border-radius: 4px;
 }
 
+#gantt-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: #ffffff;
+}
+
+#gantt-table th, #gantt-table td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center;
+}
+
+#gantt-table th {
+    background: #444;
+    color: white;
+}
+
+#gantt-table td {
+    width: 30px;
+    height: 30px;
+}
+
+/* Cores do Gantt */
+.executing { background-color: rgb(198, 137, 255); } /* Lilás - Execução */
+.waiting { background-color: yellow; }  /* Amarelo - Espera */
+.overhead { background-color: pink; }   /* Rosa - Sobrecarga */
+.not-in-queue { background-color: rgb(150, 150, 150); } /* Cinza - Fora da fila */
