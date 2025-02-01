@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 from escalonadores import fifo_scheduler, sjf_scheduler, round_robin_scheduler, edf_scheduler
-#from memoria import RAM, Disco
-#from substituicao import fifo_substituicao, lru_substituicao
+from memoria import RAM, Disco
+from substituicao import substituir_pagina_fifo, substituir_pagina_lru
+from substituicao import simular_execucao
 
 app = Flask(__name__)
 
@@ -10,8 +11,8 @@ quantum = None
 overhead = None
 
 # Dados globais para a Fase 2 (Substituição de Páginas)
-#ram = RAM(capacidade=50)  
-#disco = Disco()
+ram = RAM(capacidade=50)  
+disco = Disco()
 
 # Rotas da Fase 1
 @app.route('/')
@@ -23,7 +24,7 @@ def set_config():
     """ Define o Quantum e a Sobrecarga do sistema uma única vez """
     global quantum, overhead
     data = request.json
-    quantum = int(data.get('quantum', 1))  # Define um valor padrão caso esteja vazio
+    quantum = int(data.get('quantum', 0))  
     overhead = int(data.get('overhead', 0))
     return jsonify({'message': 'Configurações salvas com sucesso!', 'quantum': quantum, 'overhead': overhead})
 
@@ -52,7 +53,7 @@ def run_scheduler():
     elif algorithm == 'Round Robin':
         if quantum is None:
             return jsonify({'error': 'Quantum não definido'}), 400
-        result = round_robin_scheduler(processes)
+        result = round_robin_scheduler(processes, quantum, overhead)
     elif algorithm == 'EDF':
         result = edf_scheduler(processes, quantum, overhead)
     else:
@@ -63,29 +64,39 @@ def run_scheduler():
 
 
     # Rotas da Fase 2
-    #@app.route('/fase2')
-    #def fase2():
-        #return render_template('index_fase2.html')
+    @app.route('/')
+    def fase2():
+        return render_template('index_fase2.html')
 
-    #@app.route('/fase2/adicionar_pagina', methods=['POST'])
-    #def adicionar_pagina():
-        #data = request.json
-        #nova_pagina = {
-            #'id': len(ram.paginas) + len(disco.paginas) + 1,
-            #'#ultimo_acesso': data.get('ultimo_acesso', 0)
-        #}
-        #algoritmo = data.get('algoritmo', 'FIFO')
+    @app.route('/adicionar_pagina', methods=['POST'])
+    def adicionar_pagina():
+        data = request.json
+        nova_pagina = {
+            'id': len(ram.paginas) + len(disco.paginas) + 1,
+            '#ultimo_acesso': data.get('ultimo_acesso', 0)
+        }
+        algoritmo = data.get('algoritmo', 'FIFO')
 
-        #if algoritmo == 'FIFO':
-         #   resultado = fifo_substituicao(ram, disco, nova_pagina)
-        #elif algoritmo == 'LRU':
-         #   resultado = lru_substituicao(ram, disco, nova_pagina)
-       # else:
-           # return jsonify({'error': 'Algoritmo desconhecido'}), 400
+        if algoritmo == 'FIFO':
+            resultado = substituir_pagina_fifo(ram, disco, nova_pagina)
+        elif algoritmo == 'LRU':
+            resultado = substituir_pagina_lru(ram, disco, nova_pagina)
+        else:
+            return jsonify({'error': 'Algoritmo desconhecido'}), 400
 
-        #return jsonify({
-            #'message': resultado,
-           # 'ram': str(ram),
-            #'disco': str(disco)p})
+        return jsonify({
+            'message': resultado,
+            'ram': str(ram),
+            'disco': str(disco)})
+ 
+
+processos = [
+    {'id': 1, 'paginas': [{'id': i} for i in range(1, 16)]},  # 15 páginas
+    {'id': 2, 'paginas': [{'id': i} for i in range(16, 31)]},  # 15 páginas
+    {'id': 3, 'paginas': [{'id': i} for i in range(31, 46)]},  # 15 páginas
+    {'id': 4, 'paginas': [{'id': i} for i in range(46, 61)]},  # 15 páginas → Agora RAM precisa substituir páginas
+    {'id': 5, 'paginas': [{'id': i} for i in range(61, 76)]},  # 15 páginas → Mais substituições
+]
+simular_execucao(processos, 'LRU')  
 if __name__ == '__main__':
     app.run(debug=True)
