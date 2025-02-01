@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, jsonify
 from escalonadores import fifo_scheduler, sjf_scheduler, round_robin_scheduler, edf_scheduler
 from memoria import RAM, Disco
-#from substituicao import fifo_substituicao, lru_substituicao
-
+from substituicao import substituir_pagina_fifo, substituir_pagina_lru
+from substituicao import simular_execucao
 app = Flask(__name__)
 
 processes = []
@@ -63,29 +63,38 @@ def run_scheduler():
 
 
     # Rotas da Fase 2
-    @app.route('/fase2')
+    @app.route('/')
     def fase2():
         return render_template('index_fase2.html')
 
-    #@app.route('/fase2/adicionar_pagina', methods=['POST'])
-    #def adicionar_pagina():
-        #data = request.json
-        #nova_pagina = {
-            #'id': len(ram.paginas) + len(disco.paginas) + 1,
-            #'#ultimo_acesso': data.get('ultimo_acesso', 0)
-        #}
-        #algoritmo = data.get('algoritmo', 'FIFO')
+    @app.route('/adicionar_pagina', methods=['POST'])
+    def adicionar_pagina():
+        data = request.json
+        nova_pagina = {
+            'id': len(ram.paginas) + len(disco.paginas) + 1,
+            '#ultimo_acesso': data.get('ultimo_acesso', 0)
+        }
+        algoritmo = data.get('algoritmo', 'FIFO')
 
-        #if algoritmo == 'FIFO':
-         #   resultado = fifo_substituicao(ram, disco, nova_pagina)
-        #elif algoritmo == 'LRU':
-         #   resultado = lru_substituicao(ram, disco, nova_pagina)
-       # else:
-           # return jsonify({'error': 'Algoritmo desconhecido'}), 400
+        if algoritmo == 'FIFO':
+            resultado = substituir_pagina_fifo(ram, disco, nova_pagina)
+        elif algoritmo == 'LRU':
+            resultado = substituir_pagina_lru(ram, disco, nova_pagina)
+        else:
+            return jsonify({'error': 'Algoritmo desconhecido'}), 400
 
-        #return jsonify({
-            #'message': resultado,
-           # 'ram': str(ram),
-            #'disco': str(disco)p})
+        return jsonify({
+            'message': resultado,
+            'ram': str(ram),
+            'disco': str(disco)})
+ 
+
+processos = [
+    {'id': 1, 'paginas': [{'id': 1}, {'id': 2}, {'id': 3}, {'id': 4}, {'id': 5}]},
+    {'id': 2, 'paginas': [{'id': 6}, {'id': 7}, {'id': 8}, {'id': 9}, {'id': 10}]},
+    {'id': 3, 'paginas': [{'id': 11}, {'id': 12}, {'id': 13}, {'id': 14}, {'id': 15}]}
+]
+
+simular_execucao(processos, 'FIFO')  # Ou 'LRU'
 if __name__ == '__main__':
     app.run(debug=True)

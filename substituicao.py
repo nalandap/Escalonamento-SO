@@ -1,4 +1,5 @@
 from memoria import RAM, Disco
+import time
 
 def substituir_pagina_fifo(ram, disco, nova_pagina):
     if ram.esta_cheia():

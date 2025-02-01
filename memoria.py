@@ -1,3 +1,4 @@
+import time
 class RAM:
     def __init__(self, capacidade):
         self.capacidade = capacidade
