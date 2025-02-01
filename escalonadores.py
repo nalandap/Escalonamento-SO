@@ -102,3 +102,41 @@ def round_robin_scheduler(processes):
     
     avg_turnaround = sum(turnaround_times) / len(turnaround_times) if turnaround_times else 0
     return {'algorithm': 'Round Robin', 'avg_turnaround': avg_turnaround}
+
+def edf_scheduler(processes, quantum, overhead):
+    if not processes:
+        return {'algorithm': 'EDF', 'avg_turnaround': 0, 'message': 'Nenhum processo para escalonar.'}
+
+    sorted_processes = sorted(processes, key=lambda x: (x['arrival_time'], x['deadline']))
+
+    current_time = 0
+    turnaround_times = []
+    ready_queue = []
+    process_completion = {}
+
+    while sorted_processes or ready_queue:
+        while sorted_processes and sorted_processes[0]['arrival_time'] <= current_time:
+            ready_queue.append(sorted_processes.pop(0))
+            ready_queue.sort(key=lambda x: x['deadline'])
+
+        if ready_queue:
+            process = ready_queue.pop(0)
+            execution_time = min(process['execution_time'], quantum)
+            
+            current_time += execution_time  # Executa por um quantum ou até terminar
+            process['execution_time'] -= execution_time
+            
+            if process['execution_time'] > 0:
+                current_time += overhead  # Adiciona sobrecarga ao trocar de processo
+                ready_queue.append(process)  # Processo volta à fila se não terminou
+            else:
+                completion_time = current_time + overhead
+                process_completion[process['pid']] = completion_time
+                turnaround_times.append(completion_time - process['arrival_time'])
+                
+        else:
+            if sorted_processes:
+                current_time = sorted_processes[0]['arrival_time']
+
+    avg_turnaround = sum(turnaround_times) / len(turnaround_times) if turnaround_times else 0
+    return {'algorithm': 'EDF', 'avg_turnaround': avg_turnaround, 'completion_times': process_completion}

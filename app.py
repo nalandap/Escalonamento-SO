@@ -54,7 +54,7 @@ def run_scheduler():
             return jsonify({'error': 'Quantum não definido'}), 400
         result = round_robin_scheduler(processes)
     elif algorithm == 'EDF':
-        result = edf_scheduler()
+        result = edf_scheduler(processes, quantum, overhead)
     else:
         return jsonify({'error': 'Algoritmo desconhecido'}), 400
 
