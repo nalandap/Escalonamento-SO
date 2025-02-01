@@ -134,6 +134,8 @@
                 resultHTML += `<p><strong>Erro:</strong> ${result.message}</p>`;
             }
             document.getElementById("result").innerHTML = resultHTML;
+            alert(result.message || "Escalonamento concluído!");
+
         })
         .catch(error => console.error("Erro:", error));
     });

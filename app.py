@@ -46,13 +46,13 @@ def run_scheduler():
     result = {}
 
     if algorithm == 'FIFO':
-        result = fifo_scheduler()
+        result = fifo_scheduler(processes)
     elif algorithm == 'SJF':
-        result = sjf_scheduler()
+        result = sjf_scheduler(processes)
     elif algorithm == 'Round Robin':
         if quantum is None:
             return jsonify({'error': 'Quantum não definido'}), 400
-        result = round_robin_scheduler()
+        result = round_robin_scheduler(processes)
     elif algorithm == 'EDF':
         result = edf_scheduler()
     else:

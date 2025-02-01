@@ -1,4 +1,4 @@
-def fifo_scheduler():
+def fifo_scheduler(processes):
     if not processes:
         return {'algorithm': 'FIFO', 'avg_turnaround': 0, 'message': 'Nenhum processo para escalonar.'}
 
@@ -17,7 +17,7 @@ def fifo_scheduler():
     avg_turnaround = sum(turnaround_times) / len(turnaround_times)
     return {'algorithm': 'FIFO', 'avg_turnaround': avg_turnaround}
 
-def sjf_scheduler():
+def sjf_scheduler(processes):
     if not processes:
         return {'algorithm': 'SJF', 'avg_turnaround': 0, 'message': 'Nenhum processo para escalonar.'}
 
@@ -43,7 +43,7 @@ def sjf_scheduler():
     avg_turnaround = sum(turnaround_times) / len(turnaround_times)
     return {'algorithm': 'SJF', 'avg_turnaround': avg_turnaround}
 
-def round_robin_scheduler():
+def round_robin_scheduler(processes):
     global quantum
     if not processes:
         return {'algorithm': 'Round Robin', 'avg_turnaround': 0, 'message': 'Nenhum processo para escalonar.'}
