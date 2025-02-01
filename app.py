@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from escalonadores import fifo_scheduler, sjf_scheduler, round_robin_scheduler
+from escalonadores import fifo_scheduler, sjf_scheduler, round_robin_scheduler, edf_scheduler
 #from memoria import RAM, Disco
 #from substituicao import fifo_substituicao, lru_substituicao
 
