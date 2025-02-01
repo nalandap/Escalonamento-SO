@@ -5,7 +5,10 @@ def substituir_pagina_fifo(ram, disco, nova_pagina):
     if ram.esta_cheia():
         pagina_removida = ram.paginas.pop(0)  # Remove a primeira página (FIFO)
         disco.adicionar_pagina(pagina_removida)
-    ram.adicionar_pagina(nova_pagina)
+        del ram.tempo_acesso[pagina_removida['id']]  # Remover do dicionário de tempo de acesso
+    
+    ram.adicionar_pagina(nova_pagina)  # Agora adiciona a nova página corretamente
+
 
 # Função para substituição de páginas usando LRU
 def substituir_pagina_lru(ram, disco, nova_pagina):

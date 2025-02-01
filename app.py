@@ -90,11 +90,12 @@ def run_scheduler():
  
 
 processos = [
-    {'id': 1, 'paginas': [{'id': 1}, {'id': 2}, {'id': 3}, {'id': 4}, {'id': 5}]},
-    {'id': 2, 'paginas': [{'id': 6}, {'id': 7}, {'id': 8}, {'id': 9}, {'id': 10}]},
-    {'id': 3, 'paginas': [{'id': 11}, {'id': 12}, {'id': 13}, {'id': 14}, {'id': 15}]}
+    {'id': 1, 'paginas': [{'id': i} for i in range(1, 16)]},  # 15 páginas
+    {'id': 2, 'paginas': [{'id': i} for i in range(16, 31)]},  # 15 páginas
+    {'id': 3, 'paginas': [{'id': i} for i in range(31, 46)]},  # 15 páginas
+    {'id': 4, 'paginas': [{'id': i} for i in range(46, 61)]},  # 15 páginas → Agora RAM precisa substituir páginas
+    {'id': 5, 'paginas': [{'id': i} for i in range(61, 76)]},  # 15 páginas → Mais substituições
 ]
-
 simular_execucao(processos, 'FIFO')  # Ou 'LRU'
 if __name__ == '__main__':
     app.run(debug=True)
