@@ -43,8 +43,7 @@ def sjf_scheduler(processes):
     avg_turnaround = sum(turnaround_times) / len(turnaround_times)
     return {'algorithm': 'SJF', 'avg_turnaround': avg_turnaround}
 
-def round_robin_scheduler(processes):
-    global quantum
+def round_robin_scheduler(processes, quantum):
     if not processes:
         return {'algorithm': 'Round Robin', 'avg_turnaround': 0, 'message': 'Nenhum processo para escalonar.'}
 

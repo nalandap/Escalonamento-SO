@@ -113,32 +113,34 @@
         });
 
         // Executar escalonador
-            document.getElementById("scheduler-form").addEventListener("submit", function(event) {
-        event.preventDefault();
+        document.getElementById("scheduler-form").addEventListener("submit", function(event) {
+            event.preventDefault();
 
-        const data = {
-            algorithm: document.getElementById("algorithm").value
-        };
+            const data = {
+                algorithm: document.getElementById("algorithm").value
+            };
 
-        fetch("/run_scheduler", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(result => {
-            let resultHTML = `<p><strong>Algoritmo:</strong> ${result.algorithm}</p>`;
-            if (result.avg_turnaround !== undefined) {
-                resultHTML += `<p><strong>Turnaround Médio:</strong> ${result.avg_turnaround}</p>`;
-            } else {
-                resultHTML += `<p><strong>Erro:</strong> ${result.message}</p>`;
-            }
-            document.getElementById("result").innerHTML = resultHTML;
-            alert(result.message || "Escalonamento concluído!");
+            // Limpa o resultado anterior
+            document.getElementById("result").innerHTML = "";
 
-        })
-        .catch(error => console.error("Erro:", error));
-    });
+            fetch("/run_scheduler", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                let resultHTML = `<p><strong>Algoritmo:</strong> ${result.algorithm}</p>`;
+                if (result.avg_turnaround !== undefined) {
+                    resultHTML += `<p><strong>Turnaround Médio:</strong> ${result.avg_turnaround}</p>`;
+                } else {
+                    resultHTML += `<p><strong>Erro:</strong> ${result.message}</p>`;
+                }
+                document.getElementById("result").innerHTML = resultHTML;
+                alert(result.message || "Escalonamento concluído!");
+            })
+            .catch(error => console.error("Erro:", error));
+        });
     </script>
 </body>
 </html>
