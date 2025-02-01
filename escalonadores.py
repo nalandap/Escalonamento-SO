@@ -86,6 +86,10 @@ def round_robin_scheduler(processes, quantum, overhead):
         overhead_time[pid] = []
 
     while remaining_processes or ready_queue:
+        for p in ready_queue:
+            if p['remaining_time'] > 0 and current_time not in executed[p['pid']]:
+                waiting[p['pid']].append(current_time)  # Registra espera corretamente
+
         while remaining_processes and remaining_processes[0]['arrival_time'] <= current_time:
             process = remaining_processes.pop(0)
             ready_queue.append(process)
@@ -99,6 +103,8 @@ def round_robin_scheduler(processes, quantum, overhead):
 
             for _ in range(execution_time):
                 executed[pid].append(current_time)
+                if current_time in waiting[pid]:
+                    waiting[pid].remove(current_time)
                 current_time += 1
                 process['remaining_time'] -= 1
 
@@ -109,6 +115,7 @@ def round_robin_scheduler(processes, quantum, overhead):
 
                 for p in ready_queue:
                     p['waiting_time'] += 1
+                    waiting[p['pid']].append(current_time)  # Adiciona tempo de espera corretamente
 
             print(f"Processo {process['pid']} executado por {execution_time} unidades de tempo. Tempo atual: {current_time}")
  
