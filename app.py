@@ -96,6 +96,6 @@ processos = [
     {'id': 4, 'paginas': [{'id': i} for i in range(46, 61)]},  # 15 páginas → Agora RAM precisa substituir páginas
     {'id': 5, 'paginas': [{'id': i} for i in range(61, 76)]},  # 15 páginas → Mais substituições
 ]
-simular_execucao(processos, 'FIFO')  # Ou 'LRU'
+simular_execucao(processos, 'LRU')  
 if __name__ == '__main__':
     app.run(debug=True)

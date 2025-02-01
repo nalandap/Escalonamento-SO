@@ -3,14 +3,14 @@ import time
 
 def substituir_pagina_fifo(ram, disco, nova_pagina):
     if ram.esta_cheia():
-        pagina_removida = ram.paginas.pop(0)  # Remove a primeira página (FIFO)
+        pagina_removida = ram.paginas.pop(0)  
         disco.adicionar_pagina(pagina_removida)
-        del ram.tempo_acesso[pagina_removida['id']]  # Remover do dicionário de tempo de acesso
+        del ram.tempo_acesso[pagina_removida['id']] 
     
-    ram.adicionar_pagina(nova_pagina)  # Agora adiciona a nova página corretamente
+    ram.adicionar_pagina(nova_pagina)  
 
 
-# Função para substituição de páginas usando LRU
+
 def substituir_pagina_lru(ram, disco, nova_pagina):
     if ram.esta_cheia():
         # Encontra a página menos recentemente utilizada
