@@ -41,10 +41,11 @@ def gerar_paginas_aleatorias(processos, max_pagina_id=1000):
     for processo in processos:
         qtd_paginas = processo.get('qtd_paginas', 0)
 
-        if 1 <= qtd_paginas <= 10:
+        # Gera páginas apenas se qtd_paginas > 0
+        if qtd_paginas > 0 and qtd_paginas <= 10:
             processo['paginas'] = random.sample(range(1, max_pagina_id), qtd_paginas)
         else:
-            processo['paginas'] = [] 
+            processo['paginas'] = []  # Caso tenha 0 páginas ou mais de 10, a lista fica vazia
 
 # --------------------- Rotas da Fase 1 ---------------------
 
@@ -63,8 +64,13 @@ def set_config():
 
 @app.route('/add_process', methods=['POST'])
 def add_process():
+
+    global processes, processes_copy
     data = request.json
-    pid = len(processes_copy) + 1  # Gera o número do processo
+
+    print("Antes de adicionar:", processes)  # Debug
+
+    pid = len(processes) + 1  # Usa a lista original para evitar inconsistências
 
     process = {
         'pid': pid,
@@ -75,8 +81,11 @@ def add_process():
         'qtd_paginas': int(data.get('qtd_paginas', 0)),  
         'paginas': []
     }
+    processes.append(process)  
+    processes_copy = copy.deepcopy(processes)  # Atualiza a cópia com a lista correta
 
-    processes_copy.append(process)
+    print("Depois de adicionar:", processes)  # Debug
+
     if process['qtd_paginas'] > 0:  
         gerar_paginas_aleatorias([process])
 
@@ -84,6 +93,7 @@ def add_process():
 
 @app.route('/run_scheduler', methods=['POST'])
 def run_scheduler():
+
     algorithm = request.json['algorithm']
     result = {}
 
@@ -128,9 +138,6 @@ def generate_gantt_chart(result, processes):
 
 # --------------------- Rotas da Fase 2 ---------------------
 
-#@app.route('/fase2')
-#def fase2():
-    #return render_template('index_fase2.html')
 
 @app.route('/adicionarpaginas', methods=['POST'])
 def adicionar_paginas():
@@ -139,17 +146,18 @@ def adicionar_paginas():
     return jsonify({'message': 'Páginas geradas com sucesso!'})
 
 @app.route('/paginacao', methods=['POST'])
-@app.route('/paginacao', methods=['POST'])
 def paginacao():
     data = request.json
     algoritmo = data.get('algoritmo', 'FIFO')  
+    print("Processos atuais:", processes)
+    print("Cópia de processos:", processes_copy)
 
    
     if ram is None or disco is None:
         return jsonify({'message': 'Erro: RAM ou Disco não foram inicializados corretamente.'}), 500
 
    
-    processos_com_paginas = [p for p in processes_copy if p.get('paginas', [])]
+    processos_com_paginas = [p for p in processes if p.get('qtd_paginas', 0) > 0]
     if not processos_com_paginas:
         return jsonify({'message': 'Nenhum processo com páginas cadastradas para a simulação.'}), 400
 
