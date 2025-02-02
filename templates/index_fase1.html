@@ -32,7 +32,7 @@
             <label for="deadline">Deadline:</label><br>
             <input type="number" id="deadline" name="deadline" required><br>
 
-            <label for="paginas">Páginas por processo (máx. 10):</label>
+            <label for="paginas">Páginas (máx. 10):</label>
             <input type="number" id="paginas" min="0" max="10" value="5">
             
             <button type="submit">Adicionar</button>
@@ -166,11 +166,12 @@
 });
 
         // Executar escalonador
-        document.getElementById("scheduler-form").addEventListener("submit", function(event) {
+        document.getElementById("scheduler-form").addEventListener("submit", async function(event) {
             event.preventDefault();
 
             const data = {
-            algorithm: document.getElementById("algorithm").value};
+                algorithm: document.getElementById("algorithm").value
+            };
             document.getElementById("result").innerHTML = "";
             document.getElementById("gantt-body").innerHTML = "";
 
@@ -182,14 +183,15 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
-            .then(result => {
+            .then(async response => {
+                result = await response.json();
+
                 document.getElementById("result").innerHTML = `<p><strong>Algoritmo:</strong> ${result.algorithm}</p>`;
                 if (result.avg_turnaround !== undefined) {
                     document.getElementById("result").innerHTML += `<p><strong>Turnaround Médio:</strong> ${result.avg_turnaround}</p>`;
                 }
-                
-            if (result.executed) {
+
+                if (result.executed) {
                     let ganttBody = document.getElementById("gantt-body");
                     let timeRow = document.getElementById("time-row");
 
@@ -200,33 +202,33 @@
                         th.innerText = t;
                         timeRow.appendChild(th);
                     }
-                    
+
+                    let rows = {};
                     for (let processId in result.executed) {
                         let tr = document.createElement("tr");
                         let th = document.createElement("th");
                         th.innerText = `P${processId}`;
                         tr.appendChild(th);
+                        rows[processId] = tr;
+                        ganttBody.appendChild(tr); // Adiciona a linha antes para manter a estrutura
+                    }
 
-                        for (let t = 0; t < result.total_time; t++) {
+                    // 🔥 Atualiza coluna por coluna em vez de linha por linha
+                    for (let t = 0; t < result.total_time; t++) {
+                        for (let processId in result.executed) {
                             let td = document.createElement("td");
 
-                            // Prioriza vermelho se estiver após o deadline
                             if (result.deadlines && result.deadlines[processId] !== undefined) {
                                 if (t >= result.deadlines[processId] && result.executed[processId].includes(t)) {
                                     td.classList.add("late");
                                 }
-                            }
-
-                            else if (result.executed[processId].includes(t)) {
+                            } else if (result.executed[processId].includes(t)) {
                                 td.classList.add("executing");
-                            } 
-                            else if (result.waiting[processId] && result.waiting[processId].includes(t)) {
+                            } else if (result.waiting[processId] && result.waiting[processId].includes(t)) {
                                 td.classList.add("waiting");
-                            } 
-                            else if (result.overhead[processId] && result.overhead[processId].includes(t)) {
+                            } else if (result.overhead[processId] && result.overhead[processId].includes(t)) {
                                 td.classList.add("overhead");
-                            } 
-                            else {
+                            } else {
                                 let betweenWaiting = result.waiting[processId] && result.waiting[processId].some(time => time < t) &&
                                                     result.waiting[processId].some(time => time > t);
 
@@ -234,7 +236,7 @@
                                                                 result.waiting[processId] && result.waiting[processId].some(time => time > t);
 
                                 let betweenWaitingAndExecuting = result.waiting[processId] && result.waiting[processId].some(time => time < t) &&
-                                                                  result.executed[processId] && result.executed[processId].some(time => time > t);
+                                                                result.executed[processId] && result.executed[processId].some(time => time > t);
 
                                 if (betweenWaiting || betweenOverheadAndWaiting || betweenWaitingAndExecuting) {
                                     td.classList.add("waiting");
@@ -242,14 +244,18 @@
                                     td.classList.add("not-in-queue");
                                 }
                             }
-                            tr.appendChild(td);
+
+                            rows[processId].appendChild(td);
                         }
-                        ganttBody.appendChild(tr);
+
+                        await new Promise(resolve => setTimeout(resolve, 100)); // 🔥 Agora o delay é por coluna
                     }
                 }
             })
             .catch(error => console.error("Erro:", error));
         });
+
+
     </script>
 
     <!-- Carregar Chart.js primeiro para gráficos -->
@@ -344,12 +350,13 @@
                     td.style.padding = "5px";
 
                     tr.appendChild(td);
+                    await new Promise(resolve => setTimeout(resolve, 30)); // Delay de 500ms
+
                 }
 
                 tbody.appendChild(tr);
                 tabela.appendChild(tbody);
 
-                await new Promise(resolve => setTimeout(resolve, 500)); // Delay de 500ms para visualizar o carregamento
             }
         }
 

@@ -99,7 +99,7 @@ button:hover {
     position: absolute; /* Mantém a posição relativa dentro do container */
     bottom: 0px;
     bottom: 0px;
-    right: 50px;
+    right: 80px;
     background: #ffffff;
     width: 60%;
     height: 300px; /* Define um limite de altura fixo */
@@ -143,9 +143,9 @@ table, th, td {
     padding: 0;
     padding-top: 10px;
     max-height: 150px;  /* Define uma altura máxima */
-    overflow-y: auto;    /* Adiciona rolagem vertical quando necessário */
+    overflow: auto;    /* Adiciona rolagem vertical quando necessário */
     display: block; 
-  
+    max-height: 300px;
 }
 
 #process-list li {
