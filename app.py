@@ -1,4 +1,6 @@
 from flask import Flask, render_template, request, jsonify
+import random
+import time
 from escalonadores import fifo_scheduler, sjf_scheduler, round_robin_scheduler, edf_scheduler
 from memoria import RAM, Disco
 from substituicao import substituir_pagina_fifo, substituir_pagina_lru
@@ -10,10 +12,22 @@ quantum = None
 overhead = None
 
 # Dados globais para a Fase 2 (Substituição de Páginas)
-ram = RAM(capacidade=50)  
+ram = RAM(capacidade=50)
 disco = Disco()
 
-# Rotas da Fase 1
+# --------------------- Função para gerar páginas aleatórias ---------------------
+
+def gerar_paginas_aleatorias(processos, max_pagina_id=1000):
+    for processo in processos:
+        qtd_paginas = processo.get('qtd_paginas', 0)
+
+        if 1 <= qtd_paginas <= 10:
+            processo['paginas'] = random.sample(range(1, max_pagina_id), qtd_paginas)
+        else:
+            processo['paginas'] = []  # Caso tenha 0 páginas ou mais de 10, a lista fica vazia
+
+# --------------------- Rotas da Fase 1 ---------------------
+
 @app.route('/')
 def index():
     return render_template('index_fase1.html', quantum=quantum, overhead=overhead, process_list=processes)
@@ -23,7 +37,7 @@ def set_config():
     """ Define o Quantum e a Sobrecarga do sistema uma única vez """
     global quantum, overhead
     data = request.json
-    quantum = int(data.get('quantum', 0))  
+    quantum = int(data.get('quantum', 0))
     overhead = int(data.get('overhead', 0))
     return jsonify({'message': 'Configurações salvas com sucesso!', 'quantum': quantum, 'overhead': overhead})
 
@@ -38,11 +52,14 @@ def add_process():
         'execution_time': int(data['execution_time']),
         'deadline': int(data['deadline']),
         'remaining_time': int(data['execution_time']),
-        'qtd_paginas':int(data['qtd_paginas']),
-        'paginas': list(map(int, data['paginas']))
+        'qtd_paginas': int(data['qtd_paginas']),
+        'paginas': []
     }
+
     processes.append(process)
-    return jsonify({'message': 'Processo adicionado com sucesso!', 'pid': pid})
+    gerar_paginas_aleatorias([process])  # Gera páginas para esse processo
+
+    return jsonify({'message': 'Processo adicionado com sucesso!', 'pid': pid, 'paginas': process['paginas']})
 
 @app.route('/run_scheduler', methods=['POST'])
 def run_scheduler():
@@ -65,7 +82,7 @@ def run_scheduler():
     result["gantt_chart"] = generate_gantt_chart(result, processes)
     return jsonify(result)
 
-# Exportação Gráfico de Gantt
+# --------------------- Função para gerar gráfico de Gantt ---------------------
 
 def generate_gantt_chart(result, processes):
     timeline = []
@@ -75,7 +92,7 @@ def generate_gantt_chart(result, processes):
             if time < process['arrival_time']:
                 gantt_row["states"].append("Cinza")
             elif time in result['executed'][process['pid']]:
-                if time >= process['deadline']:  # Se ultrapassar o deadline, marcar como vermelho
+                if time >= process['deadline']:
                     gantt_row["states"].append("Vermelho")
                 else:
                     gantt_row["states"].append("Lilás")
@@ -88,60 +105,54 @@ def generate_gantt_chart(result, processes):
         timeline.append(gantt_row)
     return timeline
 
+# --------------------- Rotas da Fase 2 ---------------------
 
+#@app.route('/fase2')
+#def fase2():
+    #return render_template('index_fase2.html')
 
-    # Rotas da Fase 2
-    @app.route('/')
-    def fase2():
-        return render_template('index_fase2.html')
- 
-    @app.route('/adicionarpaginas', methods=['POST'])
-    def gerar_paginas_aleatorias(processos, max_pagina_id=1000):
-        for processo in processos:
-            qtd_paginas = processo.get('qtd_paginas', 0)
+@app.route('/adicionarpaginas', methods=['POST'])
+def adicionar_paginas():
+    gerar_paginas_aleatorias(processes)
+    return jsonify({'message': 'Páginas geradas com sucesso!'})
 
-           
-            if 1 <= qtd_paginas <= 10:
-                processo['paginas'] = random.sample(range(1, max_pagina_id), qtd_paginas)
-            else:
-                processo['paginas'] = [] 
+@app.route('/paginacao', methods=['POST'])
+def paginacao():
+    turnaround_total = 0
+    tempo_inicio = time.time()
 
-    
-    
-    @app.route('/paginação', methods=['POST'])
-    def paginacao():
-        turnaround_total = 0 
-        tempo_inicio = time.time() 
+    for processo in processes:
+        if not processo['paginas']:
+            print(f"Processo {processo['pid']} ignorado: não possui páginas.")
+            continue
 
-        for processo in processos:
-            if not processo['paginas']: 
-                print(f"Processo {processo['id']} ignorado: não possui páginas.")
-                continue
-            
-            if len(processo['paginas']) <= 10: 
-                print(f"Processo {processo['id']} ignorado: possui 10 ou menos páginas.")
-                continue
+        if len(processo['paginas']) <= 10:
+            print(f"Processo {processo['pid']} ignorado: possui 10 ou menos páginas.")
+            continue
 
-            print(f"Executando processo {processo['id']} com páginas: {[pagina['id'] for pagina in processo['paginas']]}")
+        print(f"Executando processo {processo['pid']} com páginas: {processo['paginas']}")
 
-            for pagina in processo['paginas']:
-                if not ram.adicionar_pagina(pagina):
-                    if algoritmo == 'FIFO':
-                        substituir_pagina_fifo(ram, disco, pagina)
-                    elif algoritmo == 'LRU':
-                        substituir_pagina_lru(ram, disco, pagina)
-                time.sleep(0.1) 
+        for pagina in processo['paginas']:
+            if not ram.adicionar_pagina(pagina):
+                if algoritmo == 'FIFO':
+                    substituir_pagina_fifo(ram, disco, pagina)
+                elif algoritmo == 'LRU':
+                    substituir_pagina_lru(ram, disco, pagina)
+            time.sleep(0.1)
 
-            turnaround_total += time.time() - tempo_inicio
-            print(ram)
-            print(disco)
-            print(f"Turnaround parcial: {time.time() - tempo_inicio:.2f} segundos\n")
+        turnaround_total += time.time() - tempo_inicio
+        print(ram)
+        print(disco)
+        print(f"Turnaround parcial: {time.time() - tempo_inicio:.2f} segundos\n")
 
-        if len(processos) > 0:
-            print(f"Turnaround médio: {turnaround_total / len(processos):.2f} segundos")
-        else:
-            print("Nenhum processo foi executado.")  # Caso todos sejam ignorados
+    if len(processes) > 0:
+        print(f"Turnaround médio: {turnaround_total / len(processes):.2f} segundos")
+    else:
+        print("Nenhum processo foi executado.")
 
+    return jsonify({'message': 'Paginação concluída!'})
 
+# --------------------- Teste manual de geração de páginas ---------------------
 
-
+if __name__ == '__main__':
+    app.run(debug=True)
