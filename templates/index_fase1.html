@@ -33,7 +33,7 @@
             <input type="number" id="deadline" name="deadline" required><br>
 
             <label for="paginas">Páginas por processo (máx. 10):</label>
-            <input type="number" id="paginas" min="1" max="10" value="5">
+            <input type="number" id="paginas" min="0" max="10" value="5">
             
             <button type="submit">Adicionar</button>
         </form>
@@ -120,7 +120,8 @@
     const data = {
         arrival_time: document.getElementById("arrival_time").value,
         execution_time: document.getElementById("execution_time").value,
-        deadline: document.getElementById("deadline").value
+        deadline: document.getElementById("deadline").value,
+        qtd_paginas: document.getElementById("paginas").value
     };
 
     try {
@@ -140,7 +141,7 @@
         
         const processList = document.getElementById('process-list');
         const li = document.createElement('li');
-        li.textContent = `Processo: ${pid}, Chegada=${data.arrival_time}, Execução=${data.execution_time}, Deadline=${data.deadline}`;
+        li.textContent = `Processo: ${pid}, Chegada=${data.arrival_time}, Execução=${data.execution_time}, Deadline=${data.deadline}, Páginas=${data.qtd_paginas}`;
         processList.appendChild(li);
     } catch (error) {
         console.error("Erro:", error);

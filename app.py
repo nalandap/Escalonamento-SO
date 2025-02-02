@@ -4,12 +4,14 @@ import time
 from escalonadores import fifo_scheduler, sjf_scheduler, round_robin_scheduler, edf_scheduler
 from memoria import RAM, Disco
 from substituicao import substituir_pagina_fifo, substituir_pagina_lru
+import copy
 
 app = Flask(__name__)
 
 processes = []
 quantum = None
 overhead = None
+processes_copy = copy.deepcopy(processes)
 
 # Dados globais para a Fase 2 (Substituição de Páginas)
 ram = RAM(capacidade=50)
@@ -18,7 +20,7 @@ disco = Disco()
 @app.route('/executar-substituicao', methods=['POST'])
 def executar_substituicao():
     data = request.json
-    algoritmo = data.get('algoritmo', 'FIFO')  # Padrão para FIFO se não for especificado
+    algoritmo = data.get('algoritmo', 'FIFO')  
     pagina = data.get('pagina')
 
     if not pagina:
@@ -42,13 +44,13 @@ def gerar_paginas_aleatorias(processos, max_pagina_id=1000):
         if 1 <= qtd_paginas <= 10:
             processo['paginas'] = random.sample(range(1, max_pagina_id), qtd_paginas)
         else:
-            processo['paginas'] = []  # Caso tenha 0 páginas ou mais de 10, a lista fica vazia
+            processo['paginas'] = [] 
 
 # --------------------- Rotas da Fase 1 ---------------------
 
 @app.route('/')
 def index():
-    return render_template('index_fase1.html', quantum=quantum, overhead=overhead, process_list=processes)
+    return render_template('index_fase1.html', quantum=quantum, overhead=overhead, process_list=processes_copy)
 
 @app.route('/set_config', methods=['POST'])
 def set_config():
@@ -62,7 +64,7 @@ def set_config():
 @app.route('/add_process', methods=['POST'])
 def add_process():
     data = request.json
-    pid = len(processes) + 1  # Gera o número do processo
+    pid = len(processes_copy) + 1  # Gera o número do processo
 
     process = {
         'pid': pid,
@@ -70,12 +72,13 @@ def add_process():
         'execution_time': int(data['execution_time']),
         'deadline': int(data['deadline']),
         'remaining_time': int(data['execution_time']),
-        'qtd_paginas': int(data.get('qtd_paginas', 5)),  # Define um valor padrão de 5 páginas se não for informado
+        'qtd_paginas': int(data.get('qtd_paginas', 0)),  
         'paginas': []
     }
 
-    processes.append(process)
-    gerar_paginas_aleatorias([process])  # Gera páginas para esse processo
+    processes_copy.append(process)
+    if process['qtd_paginas'] > 0:  
+        gerar_paginas_aleatorias([process])
 
     return jsonify({'message': 'Processo adicionado com sucesso!', 'pid': pid, 'paginas': process['paginas']})
 
@@ -85,19 +88,19 @@ def run_scheduler():
     result = {}
 
     if algorithm == 'FIFO':
-        result = fifo_scheduler(processes)
+        result = fifo_scheduler(processes_copy)
     elif algorithm == 'SJF':
-        result = sjf_scheduler(processes)
+        result = sjf_scheduler(processes_copy)
     elif algorithm == 'Round Robin':
         if quantum is None:
             return jsonify({'error': 'Quantum não definido'}), 400
-        result = round_robin_scheduler(processes, quantum, overhead)
+        result = round_robin_scheduler(processes_copy, quantum, overhead)
     elif algorithm == 'EDF':
-        result = edf_scheduler(processes, quantum, overhead)
+        result = edf_scheduler(processes_copy, quantum, overhead)
     else:
         return jsonify({'error': 'Algoritmo desconhecido'}), 400
 
-    result["gantt_chart"] = generate_gantt_chart(result, processes)
+    result["gantt_chart"] = generate_gantt_chart(result, processes_copy)
     return jsonify(result)
 
 # --------------------- Função para gerar gráfico de Gantt ---------------------
@@ -131,27 +134,29 @@ def generate_gantt_chart(result, processes):
 
 @app.route('/adicionarpaginas', methods=['POST'])
 def adicionar_paginas():
-    gerar_paginas_aleatorias(processes)
+    processos_com_paginas = [p for p in processes_copy if p.get('qtd_paginas', 0) > 0]
+    gerar_paginas_aleatorias(processos_com_paginas)
     return jsonify({'message': 'Páginas geradas com sucesso!'})
 
 @app.route('/paginacao', methods=['POST'])
+@app.route('/paginacao', methods=['POST'])
 def paginacao():
     data = request.json
-    algoritmo = data.get('algoritmo', 'FIFO')  # Obtém o algoritmo selecionado no frontend
+    algoritmo = data.get('algoritmo', 'FIFO')  
 
-    # Verifica se RAM e Disco foram inicializados corretamente
+   
     if ram is None or disco is None:
         return jsonify({'message': 'Erro: RAM ou Disco não foram inicializados corretamente.'}), 500
 
-    # Verifica se há processos com páginas antes de iniciar a simulação
-    processos_com_paginas = [p for p in processes if p['paginas']]
+   
+    processos_com_paginas = [p for p in processes_copy if p.get('paginas', [])]
     if not processos_com_paginas:
         return jsonify({'message': 'Nenhum processo com páginas cadastradas para a simulação.'}), 400
 
-    turnaround_times = []  # Lista para armazenar turnaround por processo
+    turnaround_times = [] 
 
     for processo in processos_com_paginas:
-        tempo_processo = time.time()  # Marca o início do processo
+        tempo_processo = time.time() 
 
         print(f"Executando processo {processo['pid']} com páginas: {processo['paginas']}")
 
@@ -162,9 +167,9 @@ def paginacao():
                 elif algoritmo == 'LRU':
                     substituir_pagina_lru(ram, disco, {'id': pagina})
 
-            time.sleep(0.1)  # Simula o tempo de acesso à memória
+            time.sleep(0.1) 
 
-        turnaround_times.append(time.time() - tempo_processo)  # Calcula turnaround do processo
+        turnaround_times.append(time.time() - tempo_processo) 
 
     turnaround_medio = sum(turnaround_times) / len(turnaround_times) if turnaround_times else 0
 
@@ -174,9 +179,6 @@ def paginacao():
         'ram': [p['id'] for p in ram.paginas],  
         'disco': [p['id'] for p in disco.paginas]
     })
-
-
-
 # --------------------- Teste manual de geração de páginas ---------------------
 
 if __name__ == '__main__':
