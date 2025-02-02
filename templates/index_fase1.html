@@ -117,6 +117,7 @@
         const pid = result.pid;  
 
         // Atualiza a lista de processos
+        
         const processList = document.getElementById('process-list');
         const li = document.createElement('li');
         li.textContent = `Processo: ${pid}, Chegada=${data.arrival_time}, Execução=${data.execution_time}, Deadline=${data.deadline}`;
@@ -124,6 +125,15 @@
     } catch (error) {
         console.error("Erro:", error);
     }
+    window.onload = function() {
+            let timeRow = document.getElementById("time-row");
+            timeRow.innerHTML = "<th>Tempo</th>";
+            for (let t = 0; t < 50; t++) {  // Mostra 50 unidades de tempo
+                let th = document.createElement("th");
+                th.innerText = t;
+                timeRow.appendChild(th);
+            }
+        };
 });
 
         // Executar escalonador
