@@ -6,11 +6,16 @@ body {
 }
 
 .container {
-    width: 50%;
+    width: 90%;
     margin: 50px auto;
     background: #0000007c;
     padding: 20px;
+    padding-left: 50px;
+    scroll-padding-block: auto;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.26);
+    border: 5px double #905fe7;
+    border-radius: 30px;
+    
 }
 
 h1 {
@@ -20,23 +25,25 @@ h1 {
 }
 
 h2 {
+    border-radius: 25px;
+    align-content: center;
     color: #000000;
     font-family: 'Courier New', Courier, monospace;
     text-align: center;
     font-size: 17px;
-    width: 320px;
+    width: 305px;
     height: 15px;
     padding: 12px;
     border: 3px solid yellow;
     background: yellow;
-    margin-bottom: -5px;
+    margin-bottom: -15px;
 }
 
-form label {
+form {
     display: block;
     margin: 10px 0 5px;
     text-align: center;
-    font-size: 17px;
+    font-size: 15px;
     background: #000000;
     width: 300px;
     padding: 12px;
@@ -49,7 +56,8 @@ form label {
 form input {
     width: 50%;
     padding: 8px;
-    margin-bottom: 10px;
+    margin-top: 10px;
+    margin-bottom: 13px;
     border: 1px solid #ccc;
     border-radius: 10px;
 }
@@ -67,6 +75,11 @@ button:hover {
     background: #e938cb;
 }
 
+.graficos{
+    background: #ffffff;
+    width: 70%;
+    padding: 10px;
+}
 #process-list {
     list-style-type: none;
     padding: 0;
