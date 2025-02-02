@@ -125,15 +125,7 @@
     } catch (error) {
         console.error("Erro:", error);
     }
-    window.onload = function() {
-            let timeRow = document.getElementById("time-row");
-            timeRow.innerHTML = "<th>Tempo</th>";
-            for (let t = 0; t < 50; t++) {  // Mostra 50 unidades de tempo
-                let th = document.createElement("th");
-                th.innerText = t;
-                timeRow.appendChild(th);
-            }
-        };
+
 });
 
         // Executar escalonador
@@ -141,7 +133,7 @@
             event.preventDefault();
 
             const data = {
-                algorithm: document.getElementById("algorithm").value};
+            algorithm: document.getElementById("algorithm").value};
             document.getElementById("result").innerHTML = "";
             document.getElementById("gantt-body").innerHTML = "";
 
@@ -160,9 +152,18 @@
                     document.getElementById("result").innerHTML += `<p><strong>Turnaround Médio:</strong> ${result.avg_turnaround}</p>`;
                 }
                 
-                if (result.executed) {
+            if (result.executed) {
                     let ganttBody = document.getElementById("gantt-body");
+                    let timeRow = document.getElementById("time-row");
 
+                    timeRow.innerHTML = "<th>Tempo</th>";
+
+                    for (let t = 0; t < result.total_time; t++) {
+                        let th = document.createElement("th");
+                        th.innerText = t;
+                        timeRow.appendChild(th);
+                    }
+                    
                     for (let processId in result.executed) {
                         let tr = document.createElement("tr");
                         let th = document.createElement("th");
@@ -171,41 +172,41 @@
 
                         for (let t = 0; t < result.total_time; t++) {
                             let td = document.createElement("td");
-                            
-                            //Ajuste de Coloração
-                            
-                            if (result.executed[processId].includes(t)) {
+
+                            // Prioriza vermelho se estiver após o deadline
+                            if (result.deadlines && result.deadlines[processId] !== undefined) {
+                                if (t >= result.deadlines[processId] && result.executed[processId].includes(t)) {
+                                    td.classList.add("late");
+                                }
+                            }
+
+                            else if (result.executed[processId].includes(t)) {
                                 td.classList.add("executing");
-                            } else if (result.waiting[processId] && result.waiting[processId].includes(t)) {
+                            } 
+                            else if (result.waiting[processId] && result.waiting[processId].includes(t)) {
                                 td.classList.add("waiting");
-                            } else if (result.overhead[processId] && result.overhead[processId].includes(t)) {
+                            } 
+                            else if (result.overhead[processId] && result.overhead[processId].includes(t)) {
                                 td.classList.add("overhead");
-                            } else {
-                                // Verifica se está entre dois períodos de WAITING
+                            } 
+                            else {
                                 let betweenWaiting = result.waiting[processId] && result.waiting[processId].some(time => time < t) &&
                                                     result.waiting[processId].some(time => time > t);
 
-                                // Verifica se está entre OVERHEAD e WAITING
                                 let betweenOverheadAndWaiting = result.overhead[processId] && result.overhead[processId].some(time => time < t) &&
                                                                 result.waiting[processId] && result.waiting[processId].some(time => time > t);
 
-                                // Verifica se está entre WAITING e EXECUTING
                                 let betweenWaitingAndExecuting = result.waiting[processId] && result.waiting[processId].some(time => time < t) &&
-                                                                result.executed[processId] && result.executed[processId].some(time => time > t);
+                                                                  result.executed[processId] && result.executed[processId].some(time => time > t);
 
                                 if (betweenWaiting || betweenOverheadAndWaiting || betweenWaitingAndExecuting) {
-                                    td.classList.add("waiting");  // Pinta de amarelo se estiver entre os estados esperados
+                                    td.classList.add("waiting");
                                 } else {
                                     td.classList.add("not-in-queue");
                                 }
                             }
-
-
-
-
                             tr.appendChild(td);
                         }
-
                         ganttBody.appendChild(tr);
                     }
                 }

@@ -74,7 +74,10 @@ def generate_gantt_chart(result, processes):
             if time < process['arrival_time']:
                 gantt_row["states"].append("Cinza")
             elif time in result['executed'][process['pid']]:
-                gantt_row["states"].append("Lilás")
+                if time >= process['deadline']:  # Se ultrapassar o deadline, marcar como vermelho
+                    gantt_row["states"].append("Vermelho")
+                else:
+                    gantt_row["states"].append("Lilás")
             elif time in result['waiting'][process['pid']]:
                 gantt_row["states"].append("Amarelo")
             elif time in result['overhead'][process['pid']]:
@@ -83,6 +86,7 @@ def generate_gantt_chart(result, processes):
                 gantt_row["states"].append("Cinza")
         timeline.append(gantt_row)
     return timeline
+
 
 
     # Rotas da Fase 2

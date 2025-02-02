@@ -15,13 +15,18 @@ body {
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.26);
     border: 5px double #905fe7;
     border-radius: 30px;
-    
+    position: relative;
 }
 
 h1 {
-    color: #000000;
+    color: #ffffff;
     font-family: 'Courier New', Courier, monospace;
     text-align: center;
+    font-weight: 500;
+    color: #fff;
+    font-family: 'Courier New', Courier, monospace;
+    text-align: center;
+    margin-bottom: 70px;
 }
 
 h2 {
@@ -77,47 +82,95 @@ button:hover {
 
 .graficos{
     background: #ffffff;
-    width: 70%;
-    padding: 10px;
+    width: 60%;
+    padding: 15px;
+    overflow-x: auto; /* Habilita rolagem horizontal */
+    white-space: nowrap; /* Evita quebra de linha na tabela */
+    position: absolute;
+    border-radius: 50px;
+    border: 4px solid rgb(198, 137, 255);
+    bottom: 500px;
+    right: 50px;
 }
+
 #process-list {
     list-style-type: none;
     padding: 0;
+    padding-top: 10px;
 }
 
 #process-list li {
+    text-align: left;
+    margin: 10px 5px 10px 5px;
     background: #f8f9fa;
-    margin: 5px 0;
-    padding: 10px;
-    border: 1px solid #ddd;
+    padding: 12px;
+    border: 2px solid #c4d94b;
     border-radius: 4px;
+    width: 35%;
 }
 
 #gantt-table {
-    width: 100%;
+    height: 10px;
+    border: 3px solid white;
+    width: 80%;
     border-collapse: collapse;
     margin-top: 20px;
     background: #ffffff;
 }
 
 #gantt-table th, #gantt-table td {
-    border: 1px solid black;
-    padding: 8px;
+    border: 10px solid rgb(255, 255, 255);
+    padding: 5px;
     text-align: center;
+    width: 15px;
+    min-width: 15px;
+    max-width: 15px;
+    height: 15px;
+    text-align: center;
+    font-size: 14px;
 }
 
 #gantt-table th {
-    background: #444;
+    background: #000;
     color: white;
+    width: 10px;
 }
 
 #gantt-table td {
-    width: 30px;
-    height: 30px;
+    width: 20px;
+    height: 20px;
 }
+
+#p{
+    margin-block-start: 2em;
+    margin-block-end: 2em;
+    margin-inline-start: 20px;
+    display: ruby-text;
+    padding: 10px;
+    background: #ccc;
+}
+
+/* Estiliza a linha do tempo no eixo X */
+/* Garante que os números do tempo (eixo X) tenham largura fixa */
+#time-row th {
+    background-color: black;
+    color: white;
+    padding: 5px;
+    text-align: center;
+    font-weight: bold;
+    border: 1px solid white;
+    width: 25px;  /* Define um tamanho fixo */
+    min-width: 25px;
+    max-width: 25px;
+    white-space: nowrap; /* Impede que os números quebrem a linha */
+}
+
+
+
 
 /* Cores do Gantt */
 .executing { background-color: rgb(198, 137, 255); } /* Lilás - Execução */
 .waiting { background-color: yellow; }  /* Amarelo - Espera */
 .overhead { background-color: pink; }   /* Rosa - Sobrecarga */
 .not-in-queue { background-color: rgb(150, 150, 150); } /* Cinza - Fora da fila */
+.late { background-color: red !important; color: white;font-weight: bold;}
