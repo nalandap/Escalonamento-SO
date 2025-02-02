@@ -149,9 +149,7 @@ def adicionar_paginas():
 def paginacao():
     data = request.json
     algoritmo = data.get('algoritmo', 'FIFO')  
-    print("Processos atuais:", processes)
-    print("Cópia de processos:", processes_copy)
-
+  
    
     if ram is None or disco is None:
         return jsonify({'message': 'Erro: RAM ou Disco não foram inicializados corretamente.'}), 500
@@ -190,6 +188,7 @@ def paginacao():
         'ram': [p['id'] for p in ram.paginas],  
         'disco': [p['id'] for p in disco.paginas]
     })
+    
 # --------------------- Teste manual de geração de páginas ---------------------
 
 if __name__ == '__main__':
