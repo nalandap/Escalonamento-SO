@@ -81,11 +81,27 @@
         </div>
 
         <div class="graficos_pag">
-            <h2>RAM</h2>
-            <canvas id="grafico-ram"></canvas>
-            <h2>DISCO</h2>
-            <canvas id="grafico-disco"></canvas>
+            <h2>Paginação</h2>
+        
+            <div class="memoria-container">
+                <div class="memoria">
+                    <h3><i>Disco</i></h3>
+                    <table id="disco-table">
+                        <tbody></tbody>
+                    </table>
+                </div>
+        
+                <div class="memoria">
+                    <h3><i>RAM</i></h3>
+                    <table id="ram-table">
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
+        
+        
+        
 
     </div>
 
@@ -243,114 +259,92 @@
     <!--<script src="{{ url_for('static', filename='simulacao.js') }}"></script>-->
 
     <script>
-    document.getElementById('iniciar-simulacao').addEventListener('click', async () => {
-    const algoritmo = document.getElementById('algoritmo').value; // Obtém o algoritmo selecionado
-
-    try {
-        // Verificar se há processos antes de iniciar a simulação
-        const responseProcessos = await fetch('/add_process', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                arrival_time: 0,
-                execution_time: 5,
-                deadline: 10,
-                qtd_paginas: 5
-            })
-        });
-
-        const resultadoProcessos = await responseProcessos.json();
-        console.log("Processo Adicionado:", resultadoProcessos);
-
-        // Agora, iniciar a substituição de páginas
-        const responsePaginacao = await fetch('/paginacao', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ algoritmo: algoritmo })
-        });
-
-        const resultadoPaginacao = await responsePaginacao.json();
-        console.log("Resultado da Paginação:", resultadoPaginacao);
-
-        if (resultadoPaginacao.message) {
-            alert(resultadoPaginacao.message);
-        }
-
-        // Atualizar os resultados na interface
-        if (resultadoPaginacao.ram && document.getElementById('resultado-ram')) {
-            document.getElementById('resultado-ram').innerText = `RAM: ${resultadoPaginacao.ram.join(', ')}`;
-        }
-        if (resultadoPaginacao.disco && document.getElementById('resultado-disco')) {
-            document.getElementById('resultado-disco').innerText = `Disco: ${resultadoPaginacao.disco.join(', ')}`;
-        }
-
-
-        // Atualizar gráficos
-        atualizarGraficos(resultadoPaginacao.ram, resultadoPaginacao.disco);
-    } catch (error) {
-        console.error("Erro na simulação:", error);
-    }
-});
-
-// Função para atualizar os gráficos com Chart.js
-function atualizarGraficos(ram, disco) {
-    const ctxRam = document.getElementById('grafico-ram').getContext('2d');
-    const ctxDisco = document.getElementById('grafico-disco').getContext('2d');
-
-    // Remover gráficos antigos antes de criar novos
-    if (window.graficoRam) {
-        window.graficoRam.destroy();
-    }
-    if (window.graficoDisco) {
-        window.graficoDisco.destroy();
-    }
-
-    // Criar gráfico de RAM
-    window.graficoRam = new Chart(ctxRam, {
-        type: 'bar',
-        data: {
-            labels: ram.map((_, i) => ` ${i + 1}`),
-            datasets: [{
-                label: 'Uso da RAM',
-                data: ram.map(() => 4), // Cada página ocupa 4 KB
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 200 // Capacidade máxima da RAM
-                }
+        document.getElementById('iniciar-simulacao').addEventListener('click', async () => {
+            const algoritmo = document.getElementById('algoritmo').value;
+        
+            try {
+                // Chamar a API do backend para iniciar a substituição de páginas
+                const response = await fetch('/paginacao', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ algoritmo: algoritmo })
+                });
+        
+                const data = await response.json();
+        
+                // Atualizar as tabelas RAM e Disco
+                atualizarTabela("ram-table", data.ram, "RAM");
+                atualizarTabela("disco-table", data.disco, "DISCO");
+        
+                // Atualizar a informação de turnaround
+                document.getElementById('resultado-turnaround').innerText = `Turnaround médio: ${data.turnaround_medio.toFixed(2)} segundos`;
+        
+            } catch (error) {
+                console.error("Erro ao executar a simulação:", error);
             }
-        }
-    });
+        });
+        
+        // Função para atualizar as tabelas de RAM e Disco
+        function atualizarTabela(id, data, titulo) {
+            const tabela = document.getElementById(id);
+            tabela.innerHTML = ""; // Limpa a tabela antes de recriar
 
-    // Criar gráfico de Disco
-    window.graficoDisco = new Chart(ctxDisco, {
-        type: 'bar',
-        data: {
-            labels: disco.map((_, i) => `Página ${i + 1}`),
-            datasets: [{
-                label: 'Uso do Disco',
-                data: disco.map(() => 4), // Cada página ocupa 4 KB
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
+            let colunas = 10;  // Número fixo de colunas por linha
+            let linhas = Math.ceil(data.length / colunas);  // Ajusta a quantidade de linhas conforme necessário
+
+            // Criar cabeçalho dos eixos X
+            let thead = document.createElement("thead");
+            let headerRow = document.createElement("tr");
+            let emptyHeader = document.createElement("th");
+            emptyHeader.innerText = titulo; // Define o título da tabela no cabeçalho
+            emptyHeader.style.textAlign = "center";
+            headerRow.appendChild(emptyHeader);
+
+            for (let j = 0; j < colunas; j++) {
+                let th = document.createElement("th");
+                th.innerText = j; // Índice das colunas (Eixo X)
+                headerRow.appendChild(th);
             }
-        }
-    });
-}
+            thead.appendChild(headerRow);
+            tabela.appendChild(thead);
 
+            // Criar corpo da tabela (dados e eixo Y)
+            let tbody = document.createElement("tbody");
+            for (let i = 0; i < linhas; i++) {
+                let tr = document.createElement("tr");
+                
+                // Criar primeira coluna (Eixo Y)
+                let thY = document.createElement("th");
+                thY.innerText = i; // Índice das linhas (Eixo Y)
+                thY.style.fontWeight = "bold";
+                tr.appendChild(thY);
+
+                for (let j = 0; j < colunas; j++) {
+                    let td = document.createElement("td");
+                    let index = i * colunas + j;
+
+                    if (data[index] !== undefined) {
+                        td.innerText = `P${data[index]}`;
+                        td.style.backgroundColor = "#90EE90"; // Verde para páginas alocadas
+                        td.style.color = "black";
+                    } else {
+                        td.innerText = "-";
+                        td.style.backgroundColor = "#f8f8f8"; // Cinza claro para células vazias
+                        td.style.color = "#888";
+                    }
+
+                    td.style.textAlign = "center";
+                    td.style.border = "1px solid black";
+                    td.style.padding = "5px";
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            }
+            tabela.appendChild(tbody);
+        }
+
+        </script>
+        
     
     </script>
 </body>
