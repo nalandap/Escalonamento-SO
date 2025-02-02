@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, jsonify
 from escalonadores import fifo_scheduler, sjf_scheduler, round_robin_scheduler, edf_scheduler
 from memoria import RAM, Disco
 from substituicao import substituir_pagina_fifo, substituir_pagina_lru
-from substituicao import simular_execucao
 
 app = Flask(__name__)
 
@@ -38,7 +37,8 @@ def add_process():
         'arrival_time': int(data['arrival_time']),
         'execution_time': int(data['execution_time']),
         'deadline': int(data['deadline']),
-        'remaining_time': int(data['execution_time']) 
+        'remaining_time': int(data['execution_time']),
+        'paginas': list(map(int, data['paginas']))
     }
     processes.append(process)
     return jsonify({'message': 'Processo adicionado com sucesso!', 'pid': pid})
@@ -94,35 +94,40 @@ def generate_gantt_chart(result, processes):
     def fase2():
         return render_template('index_fase2.html')
 
-    @app.route('/adicionar_pagina', methods=['POST'])
-    def adicionar_pagina():
-        data = request.json
-        nova_pagina = {
-            'id': len(ram.paginas) + len(disco.paginas) + 1,
-            '#ultimo_acesso': data.get('ultimo_acesso', 0)
-        }
-        algoritmo = data.get('algoritmo', 'FIFO')
+    @app.route('/paginação', methods=['POST'])
+    def paginacao():
+        turnaround_total = 0 
+        tempo_inicio = time.time() 
 
-        if algoritmo == 'FIFO':
-            resultado = substituir_pagina_fifo(ram, disco, nova_pagina)
-        elif algoritmo == 'LRU':
-            resultado = substituir_pagina_lru(ram, disco, nova_pagina)
+        for processo in processos:
+            if not processo['paginas']: 
+                print(f"Processo {processo['id']} ignorado: não possui páginas.")
+                continue
+            
+            if len(processo['paginas']) <= 10: 
+                print(f"Processo {processo['id']} ignorado: possui 10 ou menos páginas.")
+                continue
+
+            print(f"Executando processo {processo['id']} com páginas: {[pagina['id'] for pagina in processo['paginas']]}")
+
+            for pagina in processo['paginas']:
+                if not ram.adicionar_pagina(pagina):
+                    if algoritmo == 'FIFO':
+                        substituir_pagina_fifo(ram, disco, pagina)
+                    elif algoritmo == 'LRU':
+                        substituir_pagina_lru(ram, disco, pagina)
+                time.sleep(0.1) 
+
+            turnaround_total += time.time() - tempo_inicio
+            print(ram)
+            print(disco)
+            print(f"Turnaround parcial: {time.time() - tempo_inicio:.2f} segundos\n")
+
+        if len(processos) > 0:
+            print(f"Turnaround médio: {turnaround_total / len(processos):.2f} segundos")
         else:
-            return jsonify({'error': 'Algoritmo desconhecido'}), 400
+            print("Nenhum processo foi executado.")  # Caso todos sejam ignorados
 
-        return jsonify({
-            'message': resultado,
-            'ram': str(ram),
-            'disco': str(disco)})
- 
 
-processos = [
-    {'id': 1, 'paginas': [{'id': i} for i in range(1, 16)]},  # 15 páginas
-    {'id': 2, 'paginas': [{'id': i} for i in range(16, 31)]},  # 15 páginas
-    {'id': 3, 'paginas': [{'id': i} for i in range(31, 46)]},  # 15 páginas
-    {'id': 4, 'paginas': [{'id': i} for i in range(46, 61)]},  # 15 páginas → Agora RAM precisa substituir páginas
-    {'id': 5, 'paginas': [{'id': i} for i in range(61, 76)]},  # 15 páginas → Mais substituições
-]
-simular_execucao(processos, 'LRU')  
-if __name__ == '__main__':
-    app.run(debug=True)
+
+
