@@ -145,7 +145,6 @@ table, th, td {
     max-height: 150px;  /* Define uma altura máxima */
     overflow: auto;    /* Adiciona rolagem vertical quando necessário */
     display: block; 
-    max-height: 300px;
 }
 
 #process-list li {

@@ -170,15 +170,22 @@ def paginacao():
 
         for pagina in processo['paginas']:
             if not ram.adicionar_pagina({'id': pagina}):  
-                print(f"Page Fault detectado para P{pagina}. Atraso de {atraso_nut} u.t.")
-                time.sleep(atraso_nut)  # Simula o atraso na execução
-                page_faults.append(f"P{pagina} sofreu Page Fault! (+{atraso_nut} u.t.)")
+                print(f"⚠️ Page Fault detectado para P{pagina} - RAM cheia, substituindo página...")
 
-                # AUTOMATICAMENTE EXECUTA A SUBSTITUIÇÃO QUANDO NECESSÁRIO
+                # Escolhe o algoritmo de substituição
                 if algoritmo == 'FIFO':
-                    substituir_pagina_fifo(ram, disco, {'id': pagina})
+                    pagina_removida = substituir_pagina_fifo(ram, disco, {'id': pagina})
                 elif algoritmo == 'LRU':
-                    substituir_pagina_lru(ram, disco, {'id': pagina})
+                    pagina_removida = substituir_pagina_lru(ram, disco, {'id': pagina})
+
+                if pagina_removida:
+                    print(f"Página removida da RAM: P{pagina_removida['id']}")
+
+                    # Remove a página do disco se necessário
+                    if pagina_removida in disco.paginas:
+                        disco.paginas.remove(pagina_removida)
+                        print(f"Página removida do DISCO: P{pagina_removida['id']}")
+
 
             time.sleep(0.1) 
 
