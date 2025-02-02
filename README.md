@@ -133,14 +133,14 @@ O sistema também implementa algoritmos de substituição de páginas para geren
 
 ### Backend (Flask)
 - **Rotas**:
-   - ´/set_config´: Define o quantum e a sobrecarga do sistema.
-   - ´/add_process´: Adiciona um novo processo à lista.
-   - ´/run_scheduler´: Executa o algoritmo de escalonamento selecionado.
-   - ´/paginacao´: Executa o algoritmo de substituição de páginas selecionado.
+   - `/set_config`: Define o quantum e a sobrecarga do sistema.
+   - `/add_process`: Adiciona um novo processo à lista.
+   - `/run_scheduler`: Executa o algoritmo de escalonamento selecionado.
+   - `/paginacao`: Executa o algoritmo de substituição de páginas selecionado.
 
 - **Funções**:
-   - ´gerar_paginas_aleatorias´: Gera páginas de memória aleatórias para cada processo.
-   - ´generate_gantt_chart´: Gera o gráfico de Gantt para visualização.
+   - `gerar_paginas_aleatorias`: Gera páginas de memória aleatórias para cada processo.
+   - `generate_gantt_chart`: Gera o gráfico de Gantt para visualização.
 
 ### Frontend (HTML/JavaScript)   
 - **Formulários**: 
