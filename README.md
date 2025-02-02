@@ -1,4 +1,4 @@
-# Sistema de Escalonamento de Processos
+# Sistema de Escalonamento de Processos e Substituição de Páginas
 
 Este projeto implementa um sistema de escalonamento de processos que suporta múltiplos algoritmos de escalonamento e substituição de páginas. O sistema é desenvolvido em Python com uma interface web usando Flask.
 
@@ -61,7 +61,7 @@ O sistema também implementa algoritmos de substituição de páginas para geren
 
 2. Instale as dependências:
    ```bash
-   pip install -r requirements.txt
+   pip install flask
 
 ### Executando o Sistema
 
@@ -74,23 +74,92 @@ O sistema também implementa algoritmos de substituição de páginas para geren
     http://127.0.0.1:5000/
 
 
-### Adicionando Processos
+## Interface Web
 
-1. Na interface web, insira os dados do processo:
-   - Tempo de chegada
-   - Tempo de execução
-   - Deadline
-   - Quantum 
-   - Sobrecarga do sistema
+### Configuração do Sistema
 
-2. Clique em "Adicionar Processo" para incluir o processo na lista.
+1. Na interface web, insira os dados do sistema:
 
-### Executando o Escalonador
+    - **Quantum**: Tempo máximo que um processo pode executar antes de ser interrompido (para Round Robin).
+
+    - **Sobrecarga**: Tempo necessário para alternar entre processos.
+
+2. Clique em "Salvar Configuração" para definir os parâmetros do sistema.
+
+
+### Adicionar Processos
+
+1. Insira os dados do processo:
+
+    - **Tempo de Chegada**: Momento em que o processo chega ao sistema.
+
+    - **Tempo de Execução**: Tempo necessário para o processo ser concluído.
+
+    - **Deadline**: Prazo máximo para conclusão do processo.
+
+    - **Páginas por Processo**: Número de páginas de memória que o processo utiliza (máximo de 10).
+
+2. Clique em "Adicionar" para incluir o processo na lista.
+
+
+### Executar Escalonador
 
 1. Selecione o algoritmo de escalonamento desejado (FIFO, SJF, Round Robin, EDF).
 
-2. Clique em "Executar Escalonador" para ver o resultado.
+2. Clique em "Executar" para ver o resultado.
 
-### Visualizando Gráficos
+### Substituição de Páginas
 
-- O gráfico de Gantt e o gráfico de uso de memória serão exibidos automaticamente após a execução do escalonador.
+1. Selecione o algoritmo de substituição de páginas (FIFO ou LRU).
+
+2. Clique em "Iniciar Simulação" para ver o resultado da paginação.
+
+## Visualizações
+
+### Gráfico de Gantt
+- Mostra a execução dos processos ao longo do tempo.
+- Cores:
+   - **Lilás**: Processo em execução.
+   - **Vermelho**: Processo executado após o deadline.
+   - **Amarelo**: Processo em espera.
+   - **Rosa**: Sobrecarga do sistema.
+   - **Cinza**: Processo ainda não chegou ou não está na fila.
+
+### Tabelas de Memória
+- **RAM**: Exibe as páginas atualmente na memória.
+- **Disco**: Exibe as páginas atualmente no disco.
+
+## Estrutura do Código
+
+### Backend (Flask)
+- **Rotas**:
+   - /set_config: Define o quantum e a sobrecarga do sistema.
+   - /add_process: Adiciona um novo processo à lista.
+   - /run_scheduler: Executa o algoritmo de escalonamento selecionado.
+   - /paginacao: Executa o algoritmo de substituição de páginas selecionado.
+
+- **Funções**:
+   - gerar_paginas_aleatorias: Gera páginas de memória aleatórias para cada processo.
+   - generate_gantt_chart: Gera o gráfico de Gantt para visualização.
+
+### Frontend (HTML/JavaScript)   
+- **Formulários**: 
+   - Configurações do sistema.
+   - Adição de processos.
+   - Escolha do algoritmo de escalonamento e substituição de página.
+- **Gráficos**: 
+   - Gráfico de Gantt.
+   - Tabelas de meméria (RAM e Disco).
+  
+## Exemplo de uso 
+1. Configure o sistema com um quantum de 5 e sobrecarga de 1.
+2. Adicione processos com diferentes tempos de chegada, execução e deadlines.
+3. Execute o escalonador com o algoritmo Round Robin.
+4. Visualize o gráfico de Gantt e as tabelas de memória.
+5. Execute a simulação de substituição de páginas com o algoritmo FIFO ou LRU.
+
+## Colaboradoras:
+- Laura Ferreira de Almeida **github**:https://github.com/laura-ferreira22
+- Nalanda Santana Pita **github**:https://github.com/nalandap
+
+
