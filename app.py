@@ -149,17 +149,19 @@ def adicionar_paginas():
 def paginacao():
     data = request.json
     algoritmo = data.get('algoritmo', 'FIFO')  
-  
-   
+    atraso_nut = 2  # Valor fixo do atraso (N unidades de tempo)
+
     if ram is None or disco is None:
         return jsonify({'message': 'Erro: RAM ou Disco não foram inicializados corretamente.'}), 500
-
-   
+    
+        
     processos_com_paginas = [p for p in processes if p.get('qtd_paginas', 0) > 0]
+
     if not processos_com_paginas:
         return jsonify({'message': 'Nenhum processo com páginas cadastradas para a simulação.'}), 400
 
     turnaround_times = [] 
+    page_faults = []  # Lista para armazenar os tempos de atraso no caso de Page Fault
 
     for processo in processos_com_paginas:
         tempo_processo = time.time() 
@@ -168,7 +170,9 @@ def paginacao():
 
         for pagina in processo['paginas']:
             if not ram.adicionar_pagina({'id': pagina}):  
-                print(f"Falta de página detectada para {pagina}. Realizando substituição ({algoritmo})...")
+                print(f"Page Fault detectado para P{pagina}. Atraso de {atraso_nut} u.t.")
+                time.sleep(atraso_nut)  # Simula o atraso na execução
+                page_faults.append(f"P{pagina} sofreu Page Fault! (+{atraso_nut} u.t.)")
 
                 # AUTOMATICAMENTE EXECUTA A SUBSTITUIÇÃO QUANDO NECESSÁRIO
                 if algoritmo == 'FIFO':
@@ -186,8 +190,10 @@ def paginacao():
         'message': 'Paginação concluída!',
         'turnaround_medio': round(turnaround_medio, 2),
         'ram': [p['id'] for p in ram.paginas],  
-        'disco': [p['id'] for p in disco.paginas]
+        'disco': [p['id'] for p in disco.paginas],
+        'page_faults': page_faults  # Retorna a lista de Page Faults com os atrasos simulados
     })
+
     
 # --------------------- Teste manual de geração de páginas ---------------------
 

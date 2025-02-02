@@ -45,7 +45,7 @@
             {% endfor %}
         </ul>
 
-        <h2>Escolha do Escalonamento</h2>
+        <h2>Algoritmo de escalonaemnto:</h2>
         <form id="scheduler-form">
             <label for="algorithm">Algoritmo:</label>
             <select id="algorithm">
@@ -59,7 +59,7 @@
         </form>
         
         <div class="form-container">
-            <h2>Escolha o algoritmo:</h2><br>
+            <h2>Algoritmo de paginação:</h2><br>
             <select id="algoritmo">
                 <option value="FIFO">FIFO</option>
                 <option value="LRU">LRU</option>
@@ -79,6 +79,7 @@
                     <tbody id="gantt-body"></tbody>
                 </table>
         </div>
+            </div>
 
         <div class="graficos_pag">
             <h2>Paginação</h2>
@@ -103,7 +104,6 @@
         
         
 
-    </div>
 
 
     <script>
@@ -131,14 +131,14 @@
 
         // Adicionar processo
         document.getElementById("process-form").addEventListener("submit", async function(event) {
-    event.preventDefault();
+        event.preventDefault();
 
-    const data = {
-        arrival_time: document.getElementById("arrival_time").value,
-        execution_time: document.getElementById("execution_time").value,
-        deadline: document.getElementById("deadline").value,
-        qtd_paginas: document.getElementById("paginas").value
-    };
+        const data = {
+            arrival_time: document.getElementById("arrival_time").value,
+            execution_time: document.getElementById("execution_time").value,
+            deadline: document.getElementById("deadline").value,
+            qtd_paginas: document.getElementById("paginas").value
+        };
 
     try {
         const response = await fetch('/add_process', {
@@ -276,6 +276,11 @@
                 atualizarTabela("ram-table", data.ram, "RAM");
                 atualizarTabela("disco-table", data.disco, "DISCO");
         
+                 // Exibir mensagens de erro de Page Faults se existirem
+                if (data.page_faults && data.page_faults.length > 0) {
+                    document.getElementById('resultado-faults').innerText = `Page Faults:\n${data.page_faults.join("\n")}`;
+                }
+
                 // Atualizar a informação de turnaround
                 document.getElementById('resultado-turnaround').innerText = `Turnaround médio: ${data.turnaround_medio.toFixed(2)} segundos`;
         
@@ -285,24 +290,24 @@
         });
         
         // Função para atualizar as tabelas de RAM e Disco
-        function atualizarTabela(id, data, titulo) {
+        async function atualizarTabela(id, data, titulo) {
             const tabela = document.getElementById(id);
             tabela.innerHTML = ""; // Limpa a tabela antes de recriar
 
-            let colunas = 10;  // Número fixo de colunas por linha
-            let linhas = Math.ceil(data.length / colunas);  // Ajusta a quantidade de linhas conforme necessário
+            let colunas = 10;  
+            let linhas = Math.ceil(data.length / colunas);  
 
             // Criar cabeçalho dos eixos X
             let thead = document.createElement("thead");
             let headerRow = document.createElement("tr");
             let emptyHeader = document.createElement("th");
-            emptyHeader.innerText = titulo; // Define o título da tabela no cabeçalho
+            emptyHeader.innerText = titulo; 
             emptyHeader.style.textAlign = "center";
             headerRow.appendChild(emptyHeader);
 
             for (let j = 0; j < colunas; j++) {
                 let th = document.createElement("th");
-                th.innerText = j; // Índice das colunas (Eixo X)
+                th.innerText = j;
                 headerRow.appendChild(th);
             }
             thead.appendChild(headerRow);
@@ -312,10 +317,9 @@
             let tbody = document.createElement("tbody");
             for (let i = 0; i < linhas; i++) {
                 let tr = document.createElement("tr");
-                
-                // Criar primeira coluna (Eixo Y)
+
                 let thY = document.createElement("th");
-                thY.innerText = i; // Índice das linhas (Eixo Y)
+                thY.innerText = i;
                 thY.style.fontWeight = "bold";
                 tr.appendChild(thY);
 
@@ -325,23 +329,30 @@
 
                     if (data[index] !== undefined) {
                         td.innerText = `P${data[index]}`;
-                        td.style.backgroundColor = "#90EE90"; // Verde para páginas alocadas
+                        td.style.backgroundColor = "#e5c5ff"; 
                         td.style.color = "black";
+                        td.style.border = "4px solid white";  // Define a borda branca com 4px
+
                     } else {
                         td.innerText = "-";
-                        td.style.backgroundColor = "#f8f8f8"; // Cinza claro para células vazias
+                        td.style.backgroundColor = "#f8f8f8"; 
                         td.style.color = "#888";
                     }
 
                     td.style.textAlign = "center";
-                    td.style.border = "1px solid black";
+                    td.style.border = "4px solid white";
                     td.style.padding = "5px";
+
                     tr.appendChild(td);
                 }
+
                 tbody.appendChild(tr);
+                tabela.appendChild(tbody);
+
+                await new Promise(resolve => setTimeout(resolve, 500)); // Delay de 500ms para visualizar o carregamento
             }
-            tabela.appendChild(tbody);
         }
+
 
         </script>
         
