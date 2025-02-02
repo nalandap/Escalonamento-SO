@@ -98,6 +98,7 @@ button:hover {
 .graficos_pag {
     position: absolute; /* Mantém a posição relativa dentro do container */
     bottom: 0px;
+    bottom: 0px;
     right: 50px;
     background: #ffffff;
     width: 60%;
@@ -127,10 +128,13 @@ table {
 table, th, td {
     background-color: rgb(235 173 228);
     border: 4px solid white;
+    background-color: rgb(235 173 228);
+    border: 4px solid white;
     padding: 8px;
     text-align: center;
     font-weight: bold;
     font-family:'Courier New', Courier, monospace;
+
 
 }
 
@@ -141,6 +145,7 @@ table, th, td {
     max-height: 150px;  /* Define uma altura máxima */
     overflow-y: auto;    /* Adiciona rolagem vertical quando necessário */
     display: block; 
+  
 }
 
 #process-list li {
