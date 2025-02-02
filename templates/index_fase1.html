@@ -308,7 +308,7 @@ function atualizarGraficos(ram, disco) {
     window.graficoRam = new Chart(ctxRam, {
         type: 'bar',
         data: {
-            labels: ram.map((_, i) => `Página ${i + 1}`),
+            labels: ram.map((_, i) => ` ${i + 1}`),
             datasets: [{
                 label: 'Uso da RAM',
                 data: ram.map(() => 4), // Cada página ocupa 4 KB
