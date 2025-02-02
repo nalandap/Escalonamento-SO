@@ -52,7 +52,7 @@ def add_process():
         'execution_time': int(data['execution_time']),
         'deadline': int(data['deadline']),
         'remaining_time': int(data['execution_time']),
-        'qtd_paginas': int(data['qtd_paginas']),
+        'qtd_paginas': int(data.get('qtd_paginas', 5)),  # Define um valor padrão de 5 páginas se não for informado
         'paginas': []
     }
 
@@ -118,6 +118,9 @@ def adicionar_paginas():
 
 @app.route('/paginacao', methods=['POST'])
 def paginacao():
+    data = request.json
+    algoritmo = data.get('algoritmo', 'FIFO')  # Obtém o algoritmo selecionado no frontend
+
     turnaround_total = 0
     tempo_inicio = time.time()
 
@@ -133,12 +136,13 @@ def paginacao():
         print(f"Executando processo {processo['pid']} com páginas: {processo['paginas']}")
 
         for pagina in processo['paginas']:
-            if not ram.adicionar_pagina(pagina):
+            if not ram.adicionar_pagina({'id': pagina}):  # Garante que a página seja um dicionário
                 if algoritmo == 'FIFO':
-                    substituir_pagina_fifo(ram, disco, pagina)
+                    substituir_pagina_fifo(ram, disco, {'id': pagina})
                 elif algoritmo == 'LRU':
-                    substituir_pagina_lru(ram, disco, pagina)
-            time.sleep(0.1)
+                    substituir_pagina_lru(ram, disco, {'id': pagina})
+            
+            time.sleep(0.1)  # Simula o tempo de acesso à memória
 
         turnaround_total += time.time() - tempo_inicio
         print(ram)
@@ -146,11 +150,19 @@ def paginacao():
         print(f"Turnaround parcial: {time.time() - tempo_inicio:.2f} segundos\n")
 
     if len(processes) > 0:
-        print(f"Turnaround médio: {turnaround_total / len(processes):.2f} segundos")
+        turnaround_medio = turnaround_total / len(processes)
+        print(f"Turnaround médio: {turnaround_medio:.2f} segundos")
     else:
+        turnaround_medio = 0
         print("Nenhum processo foi executado.")
 
-    return jsonify({'message': 'Paginação concluída!'})
+    return jsonify({
+        'message': 'Paginação concluída!',
+        'turnaround_medio': round(turnaround_medio, 2),
+        'ram': [p['id'] for p in ram.paginas],  # Retorna os IDs das páginas na RAM
+        'disco': [p['id'] for p in disco.paginas]  # Retorna os IDs das páginas no Disco
+    })
+
 
 # --------------------- Teste manual de geração de páginas ---------------------
 
