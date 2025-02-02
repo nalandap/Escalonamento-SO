@@ -38,6 +38,7 @@ def add_process():
         'execution_time': int(data['execution_time']),
         'deadline': int(data['deadline']),
         'remaining_time': int(data['execution_time']),
+        'qtd_paginas':int(data['qtd_paginas']),
         'paginas': list(map(int, data['paginas']))
     }
     processes.append(process)
@@ -93,7 +94,20 @@ def generate_gantt_chart(result, processes):
     @app.route('/')
     def fase2():
         return render_template('index_fase2.html')
+ 
+    @app.route('/adicionarpaginas', methods=['POST'])
+    def gerar_paginas_aleatorias(processos, max_pagina_id=1000):
+        for processo in processos:
+            qtd_paginas = processo.get('qtd_paginas', 0)
 
+           
+            if 1 <= qtd_paginas <= 10:
+                processo['paginas'] = random.sample(range(1, max_pagina_id), qtd_paginas)
+            else:
+                processo['paginas'] = [] 
+
+    
+    
     @app.route('/paginação', methods=['POST'])
     def paginacao():
         turnaround_total = 0 
