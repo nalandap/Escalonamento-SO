@@ -162,6 +162,9 @@ def paginacao():
 
         for pagina in processo['paginas']:
             if not ram.adicionar_pagina({'id': pagina}):  
+                print(f"Falta de página detectada para {pagina}. Realizando substituição ({algoritmo})...")
+
+                # AUTOMATICAMENTE EXECUTA A SUBSTITUIÇÃO QUANDO NECESSÁRIO
                 if algoritmo == 'FIFO':
                     substituir_pagina_fifo(ram, disco, {'id': pagina})
                 elif algoritmo == 'LRU':

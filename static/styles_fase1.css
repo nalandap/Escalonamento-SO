@@ -84,7 +84,7 @@ button:hover {
     background: #ffffff;
     width: 60%;
     padding: 15px;
-    overflow-x: auto; /* Habilita rolagem horizontal */
+    overflow: auto; /* Habilita rolagem horizontal */
     white-space: nowrap; /* Evita quebra de linha na tabela */
     position: absolute;
     border-radius: 50px;
@@ -94,17 +94,19 @@ button:hover {
 }
 
 .graficos_pag {
-    position: absolute;
-    bottom: 0px;
+    position: absolute; /* Mantém a posição relativa dentro do container */
+    bottom: 300px;
     right: 50px;
     background: #ffffff;
     width: 60%;
+    height: 300px; /* Define um limite de altura fixo */
     padding: 15px;
-    overflow-x: auto;
+    overflow: auto; /* Ativa rolagem tanto horizontal quanto vertical */
     border-radius: 10px;
     border: 4px solid rgb(198, 137, 255);
     margin-top: 40px; /* Adiciona espaço para não sobrepor */
 }
+
 
 #process-list {
     list-style-type: none;
@@ -191,6 +193,12 @@ canvas {
     margin-bottom: 10px;
 }
 
+#algoritmo {
+    background: black;
+    color: white;
+    padding: 5px;
+    margin-left: 65px;
+}
 .form-container {
     margin-bottom: 20px;
 }
