@@ -59,7 +59,7 @@
         </form>
         
         <div class="form-container">
-            <label for="algoritmo">Escolha o algoritmo:</label>
+            <h2>Escolha o algoritmo:</h2><br>
             <select id="algoritmo">
                 <option value="FIFO">FIFO</option>
                 <option value="LRU">LRU</option>
@@ -238,9 +238,6 @@
     <!-- Carregar Chart.js primeiro para gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Carregar o script de substituição primeiro -->
-    <script src="{{ url_for('static', filename='substituicao.js') }}"></script>
-
     <!-- Agora, carregar o script que inicia a simulação -->
     <!--<script src="{{ url_for('static', filename='simulacao.js') }}"></script>-->
 
@@ -279,12 +276,13 @@
         }
 
         // Atualizar os resultados na interface
-        if (document.getElementById('resultado-ram')) {
-            document.getElementById('resultado-ram').innerText = `RAM: ${data.ram.join(', ')}`;
+        if (resultadoPaginacao.ram && document.getElementById('resultado-ram')) {
+            document.getElementById('resultado-ram').innerText = `RAM: ${resultadoPaginacao.ram.join(', ')}`;
         }
-        if (document.getElementById('resultado-disco')) {
-            document.getElementById('resultado-disco').innerText = `Disco: ${data.disco.join(', ')}`;
+        if (resultadoPaginacao.disco && document.getElementById('resultado-disco')) {
+            document.getElementById('resultado-disco').innerText = `Disco: ${resultadoPaginacao.disco.join(', ')}`;
         }
+
 
         // Atualizar gráficos
         atualizarGraficos(resultadoPaginacao.ram, resultadoPaginacao.disco);
