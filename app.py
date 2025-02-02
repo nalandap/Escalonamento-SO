@@ -15,6 +15,24 @@ overhead = None
 ram = RAM(capacidade=50)
 disco = Disco()
 
+@app.route('/executar-substituicao', methods=['POST'])
+def executar_substituicao():
+    data = request.json
+    algoritmo = data.get('algoritmo', 'FIFO')  # Padrão para FIFO se não for especificado
+    pagina = data.get('pagina')
+
+    if not pagina:
+        return jsonify({"error": "Nenhuma página foi enviada"}), 400
+
+    if algoritmo == 'FIFO':
+        substituir_pagina_fifo(ram, disco, {'id': pagina})
+    elif algoritmo == 'LRU':
+        substituir_pagina_lru(ram, disco, {'id': pagina})
+    else:
+        return jsonify({"error": "Algoritmo inválido"}), 400
+
+    return jsonify({"message": f"Substituição de páginas executada com {algoritmo}!"})
+
 # --------------------- Função para gerar páginas aleatórias ---------------------
 
 def gerar_paginas_aleatorias(processos, max_pagina_id=1000):
@@ -121,47 +139,42 @@ def paginacao():
     data = request.json
     algoritmo = data.get('algoritmo', 'FIFO')  # Obtém o algoritmo selecionado no frontend
 
-    turnaround_total = 0
-    tempo_inicio = time.time()
+    # Verifica se RAM e Disco foram inicializados corretamente
+    if ram is None or disco is None:
+        return jsonify({'message': 'Erro: RAM ou Disco não foram inicializados corretamente.'}), 500
 
-    for processo in processes:
-        if not processo['paginas']:
-            print(f"Processo {processo['pid']} ignorado: não possui páginas.")
-            continue
+    # Verifica se há processos com páginas antes de iniciar a simulação
+    processos_com_paginas = [p for p in processes if p['paginas']]
+    if not processos_com_paginas:
+        return jsonify({'message': 'Nenhum processo com páginas cadastradas para a simulação.'}), 400
 
-        if len(processo['paginas']) <= 10:
-            print(f"Processo {processo['pid']} ignorado: possui 10 ou menos páginas.")
-            continue
+    turnaround_times = []  # Lista para armazenar turnaround por processo
+
+    for processo in processos_com_paginas:
+        tempo_processo = time.time()  # Marca o início do processo
 
         print(f"Executando processo {processo['pid']} com páginas: {processo['paginas']}")
 
         for pagina in processo['paginas']:
-            if not ram.adicionar_pagina({'id': pagina}):  # Garante que a página seja um dicionário
+            if not ram.adicionar_pagina({'id': pagina}):  
                 if algoritmo == 'FIFO':
                     substituir_pagina_fifo(ram, disco, {'id': pagina})
                 elif algoritmo == 'LRU':
                     substituir_pagina_lru(ram, disco, {'id': pagina})
-            
+
             time.sleep(0.1)  # Simula o tempo de acesso à memória
 
-        turnaround_total += time.time() - tempo_inicio
-        print(ram)
-        print(disco)
-        print(f"Turnaround parcial: {time.time() - tempo_inicio:.2f} segundos\n")
+        turnaround_times.append(time.time() - tempo_processo)  # Calcula turnaround do processo
 
-    if len(processes) > 0:
-        turnaround_medio = turnaround_total / len(processes)
-        print(f"Turnaround médio: {turnaround_medio:.2f} segundos")
-    else:
-        turnaround_medio = 0
-        print("Nenhum processo foi executado.")
+    turnaround_medio = sum(turnaround_times) / len(turnaround_times) if turnaround_times else 0
 
     return jsonify({
         'message': 'Paginação concluída!',
         'turnaround_medio': round(turnaround_medio, 2),
-        'ram': [p['id'] for p in ram.paginas],  # Retorna os IDs das páginas na RAM
-        'disco': [p['id'] for p in disco.paginas]  # Retorna os IDs das páginas no Disco
+        'ram': [p['id'] for p in ram.paginas],  
+        'disco': [p['id'] for p in disco.paginas]
     })
+
 
 
 # --------------------- Teste manual de geração de páginas ---------------------

@@ -234,90 +234,124 @@
             .catch(error => console.error("Erro:", error));
         });
     </script>
+
+    <!-- Carregar Chart.js primeiro para gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="substituicao.js">
-    
-    document.getElementById('iniciar-simulacao').addEventListener('click', () => {
-        const algoritmo = document.getElementById('algoritmo').value; // Obtém o algoritmo selecionado
-    
-        fetch('/paginacao', {
+
+    <!-- Carregar o script de substituição primeiro -->
+    <script src="{{ url_for('static', filename='substituicao.js') }}"></script>
+
+    <!-- Agora, carregar o script que inicia a simulação -->
+    <!--<script src="{{ url_for('static', filename='simulacao.js') }}"></script>-->
+
+    <script>
+    document.getElementById('iniciar-simulacao').addEventListener('click', async () => {
+    const algoritmo = document.getElementById('algoritmo').value; // Obtém o algoritmo selecionado
+
+    try {
+        // Verificar se há processos antes de iniciar a simulação
+        const responseProcessos = await fetch('/add_process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                arrival_time: 0,
+                execution_time: 5,
+                deadline: 10,
+                qtd_paginas: 5
+            })
+        });
+
+        const resultadoProcessos = await responseProcessos.json();
+        console.log("Processo Adicionado:", resultadoProcessos);
+
+        // Agora, iniciar a substituição de páginas
+        const responsePaginacao = await fetch('/paginacao', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ algoritmo: algoritmo })
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message);
-    
-            // Exibir os resultados na interface
-            document.getElementById('resultado-turnaround').innerText = `Turnaround médio: ${data.turnaround_medio} segundos`;
+        });
+
+        const resultadoPaginacao = await responsePaginacao.json();
+        console.log("Resultado da Paginação:", resultadoPaginacao);
+
+        if (resultadoPaginacao.message) {
+            alert(resultadoPaginacao.message);
+        }
+
+        // Atualizar os resultados na interface
+        if (document.getElementById('resultado-ram')) {
             document.getElementById('resultado-ram').innerText = `RAM: ${data.ram.join(', ')}`;
+        }
+        if (document.getElementById('resultado-disco')) {
             document.getElementById('resultado-disco').innerText = `Disco: ${data.disco.join(', ')}`;
-    
-            // Atualizar gráficos de RAM e Disco
-            atualizarGraficos(data.ram, data.disco);
-        })
-        .catch(error => console.error("Erro na simulação:", error));
-    });
-    
-    // Função para atualizar os gráficos com Chart.js
-    function atualizarGraficos(ram, disco) {
-        const ctxRam = document.getElementById('grafico-ram').getContext('2d');
-        const ctxDisco = document.getElementById('grafico-disco').getContext('2d');
-    
-        // Remover gráficos anteriores antes de criar novos
-        if (window.graficoRam) {
-            window.graficoRam.destroy();
         }
-        if (window.graficoDisco) {
-            window.graficoDisco.destroy();
-        }
-    
-        // Criar gráfico de uso da RAM
-        window.graficoRam = new Chart(ctxRam, {
-            type: 'bar',
-            data: {
-                labels: ram.map((_, i) => `Página ${i + 1}`),
-                datasets: [{
-                    label: 'Uso da RAM',
-                    data: ram.map(() => 4), // Cada página ocupa 4 KB
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 200 // Capacidade máxima da RAM
-                    }
-                }
-            }
-        });
-    
-        // Criar gráfico de uso do Disco
-        window.graficoDisco = new Chart(ctxDisco, {
-            type: 'bar',
-            data: {
-                labels: disco.map((_, i) => `Página ${i + 1}`),
-                datasets: [{
-                    label: 'Uso do Disco',
-                    data: disco.map(() => 4), // Cada página ocupa 4 KB
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
+
+        // Atualizar gráficos
+        atualizarGraficos(resultadoPaginacao.ram, resultadoPaginacao.disco);
+    } catch (error) {
+        console.error("Erro na simulação:", error);
     }
+});
+
+// Função para atualizar os gráficos com Chart.js
+function atualizarGraficos(ram, disco) {
+    const ctxRam = document.getElementById('grafico-ram').getContext('2d');
+    const ctxDisco = document.getElementById('grafico-disco').getContext('2d');
+
+    // Remover gráficos antigos antes de criar novos
+    if (window.graficoRam) {
+        window.graficoRam.destroy();
+    }
+    if (window.graficoDisco) {
+        window.graficoDisco.destroy();
+    }
+
+    // Criar gráfico de RAM
+    window.graficoRam = new Chart(ctxRam, {
+        type: 'bar',
+        data: {
+            labels: ram.map((_, i) => `Página ${i + 1}`),
+            datasets: [{
+                label: 'Uso da RAM',
+                data: ram.map(() => 4), // Cada página ocupa 4 KB
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 200 // Capacidade máxima da RAM
+                }
+            }
+        }
+    });
+
+    // Criar gráfico de Disco
+    window.graficoDisco = new Chart(ctxDisco, {
+        type: 'bar',
+        data: {
+            labels: disco.map((_, i) => `Página ${i + 1}`),
+            datasets: [{
+                label: 'Uso do Disco',
+                data: disco.map(() => 4), // Cada página ocupa 4 KB
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
     
     </script>
 </body>

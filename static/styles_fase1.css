@@ -89,13 +89,14 @@ button:hover {
     position: absolute;
     border-radius: 50px;
     border: 4px solid rgb(198, 137, 255);
-    bottom: 1200px;
+    bottom: 700px;
     right: 50px;
 }
 
 .graficos_pag {
     position: absolute;
-    bottom: 800px;
+    bottom: 0px;
+    right: 50px;
     background: #ffffff;
     width: 60%;
     padding: 15px;
