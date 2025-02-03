@@ -169,6 +169,10 @@
         document.getElementById("scheduler-form").addEventListener("submit", async function(event) {
             event.preventDefault();
 
+            const botao = document.querySelector("iniciar-simulacao");
+            botao.disabled = true;  // 🔹 Desativa o botão temporariamente
+            botao.innerText = "Processando...";  // 🔹 Altera o texto para indicar processamento
+
             const data = {
                 algorithm: document.getElementById("algorithm").value
             };
@@ -248,11 +252,13 @@
                             rows[processId].appendChild(td);
                         }
 
-                        await new Promise(resolve => setTimeout(resolve, 100)); // 🔥 Agora o delay é por coluna
+                        await new Promise(resolve => setTimeout(resolve, 50)); 
                     }
                 }
             })
             .catch(error => console.error("Erro:", error));
+            botao.disabled = false; 
+            botao.innerText = "Iniciar Simulação";
         });
 
 
