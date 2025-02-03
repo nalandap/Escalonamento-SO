@@ -2,6 +2,8 @@
 
 Este projeto implementa um sistema de escalonamento de processos que suporta múltiplos algoritmos de escalonamento e substituição de páginas. O sistema é desenvolvido em Python com uma interface web usando Flask.
 
+*Para melhor responsividade, os elementos extensos e com tamanhos variáveis possuem scroll para sua visualização completa.*
+
 ## Funcionalidades
 
 ### FASE 1: Escalonamento de Processos
