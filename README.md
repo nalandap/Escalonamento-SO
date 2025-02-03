@@ -6,6 +6,8 @@ Este projeto implementa um sistema de escalonamento de processos que suporta mú
 
 ### FASE 1: Escalonamento de Processos
 
+**Para adicionar novos processos após a execução de um dos algoritmos, é necessário reiniciar a execução com python app.py**
+**Para rodar um algoritmo novamente após outro ser rodado(ex: FIFO>>RR>>FIFO), aconselhamos que a execução seja reiniciada com python app.py**
 O sistema implementa os seguintes algoritmos de escalonamento de processos:
 
 1. **FIFO (First-In, First-Out)**:

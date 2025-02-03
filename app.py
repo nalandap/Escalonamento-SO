@@ -171,7 +171,6 @@ def paginacao():
         for pagina in processo['paginas']:
             if not ram.adicionar_pagina({'id': pagina}):  
                 print(f"Page Fault detectado para P{pagina}. Atraso de {atraso_nut} u.t.")
-                time.sleep(atraso_nut)  # Simula o atraso na execução
                 page_faults.append(f"P{pagina} sofreu Page Fault! (+{atraso_nut} u.t.)")
 
                 # AUTOMATICAMENTE EXECUTA A SUBSTITUIÇÃO QUANDO NECESSÁRIO
@@ -180,7 +179,6 @@ def paginacao():
                 elif algoritmo == 'LRU':
                     substituir_pagina_lru(ram, disco, {'id': pagina})
 
-            time.sleep(0.1) 
 
         turnaround_times.append(time.time() - tempo_processo) 
 
